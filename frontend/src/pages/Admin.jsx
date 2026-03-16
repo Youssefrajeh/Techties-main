@@ -306,7 +306,7 @@ export default function Admin() {
           <span className="admin-user">{session?.email}</span>
           <button
             type="button"
-            className="admin-btn admin-btn--sm admin-btn--outline"
+            className="admin-btn admin-btn--sm admin-btn--outline admin-btn--logout"
             onClick={() => {
               logout();
               navigate('/login');
