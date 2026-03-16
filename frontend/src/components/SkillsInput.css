@@ -1,0 +1,135 @@
+.skills-input {
+  position: relative;
+}
+
+.skills-input__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-1);
+}
+
+.skills-input__count {
+  font-weight: 400;
+  color: var(--color-gray-400);
+  font-size: var(--font-size-xs);
+}
+
+.skills-input__box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0.5rem 0.75rem;
+  min-height: 48px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: text;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  align-items: center;
+}
+
+.skills-input__box:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.15);
+}
+
+.skills-input__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  animation: tagIn 0.2s ease forwards;
+}
+
+@keyframes tagIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.skills-input__tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  line-height: 1;
+}
+
+.skills-input__tag-remove:hover {
+  background: rgba(55, 65, 81, 0.15);
+}
+
+.skills-input__field {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  color: var(--color-gray-900);
+  background: transparent;
+}
+
+.skills-input__field::placeholder {
+  color: var(--color-gray-400);
+}
+
+/* Suggestions dropdown */
+.skills-input__suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  padding: var(--space-1);
+}
+
+.skills-input__suggestion {
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.skills-input__suggestion:hover,
+.skills-input__suggestion--active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}

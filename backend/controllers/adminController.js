@@ -1,0 +1,196 @@
+const User = require("../models/User");
+const Profile = require("../models/Profile");
+const MatchFeedback = require("../models/MatchFeedback");
+
+// helper: PM-only access check
+async function requirePM(req, res) {
+  const currentUser = await User.findById(req.user);
+  if (!currentUser || currentUser.role !== "pm") {
+    res.status(403).json({ msg: "Access denied. Product Manager privileges required." });
+    return null;
+  }
+  return currentUser;
+}
+
+// @desc    Get dashboard statistics for Product Managers
+// @route   GET /api/admin/dashboard
+// @access  Private (PM only)
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const totalUsers = await User.countDocuments();
+    const totalAdmins = await User.countDocuments({ role: "pm" });
+    const totalMembers = await User.countDocuments({ role: { $ne: "pm" } });
+    const totalPaidMembers = await User.countDocuments({ isPaid: true });
+    const totalProfiles = await Profile.countDocuments();
+    const totalFeedback = await MatchFeedback.countDocuments();
+
+    let averageMatchScore = 0;
+
+    if (totalFeedback > 0) {
+      const result = await MatchFeedback.aggregate([
+        {
+          $group: {
+            _id: null,
+            avgScore: { $avg: "$score" },
+          },
+        },
+      ]);
+
+      if (result.length > 0) {
+        averageMatchScore = Number(result[0].avgScore.toFixed(1));
+      }
+    }
+
+    res.json({
+      metrics: {
+        totalUsers,
+        totalAdmins,
+        totalMembers,
+        totalPaidMembers,
+        totalProfiles,
+        totalFeedback,
+        averageMatchScore,
+      },
+    });
+  } catch (error) {
+    console.error("Dashboard metrics error:", error);
+    res.status(500).send("Server error fetching dashboard stats");
+  }
+};
+
+// @desc    List all users (PM only)
+// @route   GET /api/admin/users
+// @access  Private (PM only)
+exports.getUsers = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const users = await User.find().select("-password").sort({ date: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error("Admin getUsers error:", error);
+    res.status(500).send("Server error fetching users");
+  }
+};
+
+// @desc    Update user role or isPaid (PM only)
+// @route   PATCH /api/admin/users/:id
+// @access  Private (PM only)
+exports.updateUser = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const { role, isPaid } = req.body;
+    const updates = {};
+
+    if (role !== undefined) {
+      const allowedRoles = ["member", "pm"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ msg: "Invalid role value" });
+      }
+      updates.role = role;
+    }
+
+    if (typeof isPaid === "boolean") {
+      updates.isPaid = isPaid;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Admin updateUser error:", error);
+    res.status(500).send("Server error updating user");
+  }
+};
+
+// @desc    Delete a user (PM only)
+// @route   DELETE /api/admin/users/:id
+// @access  Private (PM only)
+exports.deleteUser = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const userId = req.params.id;
+
+    // optional: prevent PM from deleting themselves
+    if (String(currentUser._id) === String(userId)) {
+      return res.status(400).json({ msg: "You cannot delete your own account from admin." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // delete related profile
+    await Profile.deleteOne({ user: userId });
+
+    // delete related feedback
+    await MatchFeedback.deleteMany({
+      $or: [{ user: userId }, { matchedUser: userId }],
+    });
+
+    // delete user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ msg: "User deleted successfully" });
+  } catch (error) {
+    console.error("Admin deleteUser error:", error);
+    res.status(500).send("Server error deleting user");
+  }
+};
+
+// @desc    List all profiles (PM only)
+// @route   GET /api/admin/profiles
+// @access  Private (PM only)
+exports.getProfiles = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const profiles = await Profile.find()
+      .populate("user", "name email role")
+      .sort({ date: -1 });
+
+    res.json(profiles);
+  } catch (error) {
+    console.error("Admin getProfiles error:", error);
+    res.status(500).send("Server error fetching profiles");
+  }
+};
+
+// @desc    List all match feedback (PM only)
+// @route   GET /api/admin/feedback
+// @access  Private (PM only)
+exports.getFeedback = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const feedback = await MatchFeedback.find()
+      .populate("user", "name email")
+      .populate("matchedUser", "name email")
+      .sort({ date: -1 })
+      .limit(200);
+
+    res.json(feedback);
+  } catch (error) {
+    console.error("Admin getFeedback error:", error);
+    res.status(500).send("Server error fetching feedback");
+  }
+};

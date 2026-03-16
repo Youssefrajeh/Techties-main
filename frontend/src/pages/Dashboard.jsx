@@ -1,0 +1,325 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import Button from "../components/Button";
+import { getSession, logout } from "../utils/auth";
+import { getProfile, hasProfile, saveProfile } from "../utils/profileStore";
+import "./Dashboard.css";
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fromProfileUpdate = location.state?.profileUpdated === true;
+
+
+  const session = getSession();
+  const sessionEmail = session?.email || "";
+
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fromProfileSetup = location.state?.fromProfileSetup === true;
+
+  useEffect(() => {
+    if (!sessionEmail) {
+      navigate("/login");
+      return;
+    }
+    if (session?.role === "pm") {
+      navigate("/admin", { replace: true });
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    async function loadProfile() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (token) {
+          const res = await fetch("/api/profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+
+            const profileData = {
+              salutation: data.salutation || "",
+              firstName: data.firstName || "",
+              lastName: data.lastName || "",
+              nickname: data.nickname || "",
+              dob: data.dob || "",
+              gender: data.gender || "",
+              email: data.email || sessionEmail,
+              contactMethod: data.contactMethod || "",
+              memberType: data.memberType || "",
+              photo: data.photo || "",
+              skills: Array.isArray(data.skills) ? data.skills : [],
+              bio: data.bio || "",
+              location: data.location || "",
+            };
+
+            saveProfile(sessionEmail, profileData);
+            setProfile(profileData);
+            return;
+          }
+        }
+
+        if (hasProfile(sessionEmail)) {
+          const localProfile = getProfile(sessionEmail);
+          setProfile({
+            ...localProfile,
+            bio: localProfile?.bio || "",
+            location: localProfile?.location || "",
+            skills: Array.isArray(localProfile?.skills) ? localProfile.skills : [],
+          });
+          return;
+        }
+
+        navigate("/profile/setup");
+      } catch (err) {
+        console.error("Error loading dashboard profile:", err);
+
+        if (hasProfile(sessionEmail)) {
+          const localProfile = getProfile(sessionEmail);
+          setProfile({
+            ...localProfile,
+            bio: localProfile?.bio || "",
+            location: localProfile?.location || "",
+            skills: Array.isArray(localProfile?.skills) ? localProfile.skills : [],
+          });
+        } else {
+          setError("Could not load profile.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProfile();
+  }, [sessionEmail, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const displayName = useMemo(() => {
+    if (!profile) return "";
+    return `${profile.salutation ? `${profile.salutation} ` : ""}${profile.firstName || ""} ${profile.lastName || ""}`.trim();
+  }, [profile]);
+
+  const topSkills = useMemo(() => {
+    if (!profile?.skills || !Array.isArray(profile.skills)) return [];
+    return profile.skills.slice(0, 3);
+  }, [profile]);
+
+  if (loading && !profile) {
+    return (
+      <div className="dashboard dashboard--loading">
+        <div className="dashboard-loading">
+          <span className="dashboard-loading__spinner" />
+          <p>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !profile) {
+    return (
+      <div className="dashboard dashboard--loading">
+        <div className="dashboard-loading dashboard-loading--error">
+          <p>{error}</p>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate("/profile/setup")}
+          >
+            Set up profile
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  return (
+    <div className="dashboard">
+      <nav className="dashboard__nav">
+        <Link to="/" className="dashboard__nav-brand">
+          TechTies
+        </Link>
+
+        <div className="dashboard__nav-actions">
+          <Button variant="ghost" size="sm" to="/profile/edit">
+            Edit Profile
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleLogout}>
+            Log out
+          </Button>
+        </div>
+      </nav>
+
+      <div className="dashboard__container">
+      {fromProfileSetup && (
+  <div className="dashboard__success-banner" role="alert">
+    Your profile is all set. Welcome to TechTies!
+  </div>
+)}
+
+{fromProfileUpdate && (
+  <div className="dashboard__success-banner" role="alert">
+    ✓ Profile updated successfully!
+  </div>
+)}
+
+{location.state?.adminDenied && (
+  <div className="dashboard__admin-denied-banner" role="alert">
+    Only admin accounts can access the Admin page. Log in with an admin account to continue.
+  </div>
+)}
+
+        <div className="dashboard__welcome">
+          <h1>Welcome{profile.firstName ? `, ${profile.firstName}` : ""}! 👋</h1>
+          <p>Here's your profile overview and quick actions.</p>
+        </div>
+
+        <div className="dashboard__grid">
+          {/* Profile Card */}
+          <div className="dashboard__card dashboard__profile-card">
+            <div className="dashboard__avatar">
+              {profile.photo ? (
+                <img
+                  src={profile.photo}
+                  alt="Profile"
+                  className="dashboard__avatar-img"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <span className="dashboard__avatar-initials">
+                  {profile.firstName?.[0] || ""}
+                  {profile.lastName?.[0] || ""}
+                </span>
+              )}
+            </div>
+
+            <h2 className="dashboard__name">{displayName}</h2>
+            <p className="dashboard__nickname">
+              {profile.nickname ? `@${profile.nickname}` : ""}
+            </p>
+
+            {profile.memberType && (
+              <span className="dashboard__member-badge">{profile.memberType}</span>
+            )}
+
+            {profile.bio && (
+              <p className="dashboard__bio">{profile.bio}</p>
+            )}
+
+            {profile.location && (
+              <p className="dashboard__location">📍 {profile.location}</p>
+            )}
+
+            <div className="dashboard__details">
+              <div className="dashboard__detail">
+                <span className="dashboard__detail-label">📧 Email</span>
+                <span className="dashboard__detail-value">{profile.email || "—"}</span>
+              </div>
+
+              <div className="dashboard__detail">
+                <span className="dashboard__detail-label">⚧ Gender</span>
+                <span className="dashboard__detail-value">{profile.gender || "—"}</span>
+              </div>
+
+              <div className="dashboard__detail">
+                <span className="dashboard__detail-label">🎂 Date of Birth</span>
+                <span className="dashboard__detail-value">{profile.dob || "—"}</span>
+              </div>
+
+              <div className="dashboard__detail">
+                <span className="dashboard__detail-label">💬 Contact Method</span>
+                <span className="dashboard__detail-value">
+                  {profile.contactMethod || "—"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+
+          {/* Skills Card */}
+<div className="dashboard__card dashboard__skills-card">
+  <h3 className="dashboard__card-title">Your Skills</h3>
+
+
+  {Array.isArray(profile.skills) && profile.skills.length > 0 ? (
+    <div className="dashboard__skills-grid">
+      {profile.skills.map((skill, index) => {
+        const skillName =
+          typeof skill === "string" ? skill : skill?.name || `Skill ${index + 1}`;
+
+        return (
+          <div key={`${skillName}-${index}`} className="dashboard__skill-pill">
+            {skillName}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="dashboard__no-skills">
+      No skills added yet. <Link to="/profile/edit">Add some!</Link>
+    </p>
+  )}
+</div>
+
+
+          {/* Quick Actions */}
+          <div className="dashboard__card dashboard__actions-card">
+            <h3 className="dashboard__card-title">Quick Actions</h3>
+
+            <div className="dashboard__quick-actions">
+              <Button variant="primary" fullWidth to="/matches">
+                🤝 View Match Recommendations
+              </Button>
+
+              {session?.role === "pm" && (
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  to="/admin"
+                  style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}
+                >
+                  📊 Admin
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                fullWidth
+                to="/profile/edit"
+                style={{ marginTop: "0.5rem" }}
+              >
+                ✏️ Edit Profile
+              </Button>
+
+              <Button
+                variant="ghost"
+                fullWidth
+                to="/"
+                style={{ marginTop: "0.5rem" }}
+              >
+                🏠 Back to Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

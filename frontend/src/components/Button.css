@@ -1,0 +1,126 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Sizes */
+.btn--sm {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-sm);
+}
+
+.btn--md {
+  padding: 0.625rem 1.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.btn--lg {
+  padding: 0.75rem 2rem;
+  font-size: var(--font-size-base);
+}
+
+/* Variants */
+.btn--primary {
+  background: var(--gradient-primary);
+  color: var(--color-white);
+  box-shadow: var(--shadow-md), 0 0 0 0 rgba(55, 65, 81, 0);
+}
+
+.btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+}
+
+.btn--secondary {
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  border: 1.5px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary:hover {
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-50);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.btn--outline:hover {
+  background: var(--color-primary-light);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-gray-600);
+}
+
+.btn--ghost:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-800);
+}
+
+.btn--social {
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  border: 1.5px solid var(--color-gray-200);
+  width: 100%;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.btn--social:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+.btn--social .btn__icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Full width */
+.btn--full {
+  width: 100%;
+}
+
+/* Disabled / Loading */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-full);
+  animation: spin 0.6s linear infinite;
+}
