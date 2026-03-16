@@ -14,11 +14,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "backend/server.js"
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/(.*\\.[a-z0-9]+)$",
+      "destination": "/frontend/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "frontend/$1"
+      "destination": "/frontend/index.html"
     }
   ]
 }

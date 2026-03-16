@@ -1,5 +1,5 @@
-const MatchFeedback = require("../../backend/models/MatchFeedback");
-const User = require("../../backend/models/User");
+const MatchFeedback = require("../models/MatchFeedback");
+const User = require("../models/User");
 
 // @desc    Submit feedback on a match recommendation
 // @route   POST /api/feedback/submit
