@@ -61,6 +61,8 @@ export default function Dashboard() {
               skills: Array.isArray(data.skills) ? data.skills : [],
               bio: data.bio || "",
               location: data.location || "",
+              age: data.age || null,
+              phone: data.phone || "",
             };
 
             saveProfile(sessionEmail, profileData);
@@ -233,13 +235,27 @@ export default function Dashboard() {
                 <span className="dashboard__detail-value">{profile.email || "—"}</span>
               </div>
 
+              {profile.phone && (
+                <div className="dashboard__detail">
+                  <span className="dashboard__detail-label">📞 Phone</span>
+                  <span className="dashboard__detail-value">{profile.phone}</span>
+                </div>
+              )}
+
               <div className="dashboard__detail">
                 <span className="dashboard__detail-label">⚧ Gender</span>
                 <span className="dashboard__detail-value">{profile.gender || "—"}</span>
               </div>
 
+              {profile.age && (
+                <div className="dashboard__detail">
+                  <span className="dashboard__detail-label">🎂 Age</span>
+                  <span className="dashboard__detail-value">{profile.age} years old</span>
+                </div>
+              )}
+
               <div className="dashboard__detail">
-                <span className="dashboard__detail-label">🎂 Date of Birth</span>
+                <span className="dashboard__detail-label">🗓️ Date of Birth</span>
                 <span className="dashboard__detail-value">{profile.dob || "—"}</span>
               </div>
 

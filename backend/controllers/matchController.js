@@ -6,21 +6,20 @@ const User = require("../models/User");
 // @access  Private (Paid Members only)
 exports.getMatchRecommendations = async (req, res) => {
   try {
-    // 1. Verify user is a paid member (our temporary 'isPaid' flag logic)
-    const currentUser = await User.findById(req.user.id);
+    // 1. Verify user is a paid member
+    const currentUser = await User.findById(req.user);
     if (!currentUser || !currentUser.isPaid) {
       return res.status(403).json({ msg: "Access denied. Paid membership required for match recommendations." });
     }
 
     // 2. Get current user's profile to compare against
-    const currentProfile = await Profile.findOne({ user: req.user.id });
+    const currentProfile = await Profile.findOne({ user: req.user });
     if (!currentProfile) {
       return res.status(400).json({ msg: "Please create a profile first to see matches." });
     }
 
     // 3. Find all other profiles (don't match with self)
-    // In a real app, you'd limit this pool based on location or other factors
-    const otherProfiles = await Profile.find({ user: { $ne: req.user.id } }).populate("user", ["name"]);
+    const otherProfiles = await Profile.find({ user: { $ne: req.user } }).populate("user", ["name"]);
 
     // 4. Calculate match scores based on multiple factors
     let recommendations = otherProfiles.map((profile) => {
@@ -111,13 +110,13 @@ exports.getMatchContact = async (req, res) => {
     const { matchedUserId } = req.params;
 
     // 1. Verify current user is paid
-    const currentUser = await User.findById(req.user.id);
+    const currentUser = await User.findById(req.user);
     if (!currentUser || !currentUser.isPaid) {
       return res.status(403).json({ msg: "Paid membership required." });
     }
 
     // 2. Get profiles
-    const currentProfile = await Profile.findOne({ user: req.user.id });
+    const currentProfile = await Profile.findOne({ user: req.user });
     const targetProfile = await Profile.findOne({ user: matchedUserId }).populate("user", ["email", "name"]);
 
     if (!currentProfile || !targetProfile) {
@@ -129,9 +128,9 @@ exports.getMatchContact = async (req, res) => {
       return res.status(403).json({ msg: "This user has not shared their contact information." });
     }
 
-    // 4. Verify match exists (In simple terms, just check they are different users)
-    if (req.user.id === matchedUserId) {
-        return res.status(400).json({ msg: "Cannot fetch your own contact info here." });
+    // 4. Verify user is not fetching their own contact info
+    if (String(req.user) === String(matchedUserId)) {
+      return res.status(400).json({ msg: "Cannot fetch your own contact info here." });
     }
     
     res.json({

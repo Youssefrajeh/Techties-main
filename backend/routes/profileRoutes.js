@@ -38,6 +38,18 @@ router.post("/", auth, async (req, res) => {
       req.body.allowContactShare !== undefined
         ? req.body.allowContactShare
         : false,
+    phone: req.body.phone || "",
+    age: req.body.age ? Number(req.body.age) : 18,
+    matchingPreferences: {
+      ageRange: {
+        min: req.body.matchingPreferences?.ageRange?.min ?? 18,
+        max: req.body.matchingPreferences?.ageRange?.max ?? 100,
+      },
+      locationPreference: req.body.matchingPreferences?.locationPreference || "Global",
+      preferredMemberTypes: Array.isArray(req.body.matchingPreferences?.preferredMemberTypes)
+        ? req.body.matchingPreferences.preferredMemberTypes
+        : [],
+    },
     skills: Array.isArray(req.body.skills)
       ? req.body.skills
           .map((skill) =>

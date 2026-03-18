@@ -317,6 +317,17 @@ export default function ProfileSetup() {
                 error={errors.gender}
                 required
               />
+
+              <Input
+                id="age"
+                label="Age"
+                type="number"
+                value={profile.age}
+                onChange={(e) => update("age", parseInt(e.target.value) || 18)}
+                error={errors.age}
+                min="18"
+                max="100"
+              />
             </div>
           </fieldset>
 
@@ -335,6 +346,15 @@ export default function ProfileSetup() {
                 value={profile.email}
                 onChange={() => {}}
                 disabled
+              />
+
+              <Input
+                id="phone"
+                label="Phone Number"
+                type="tel"
+                value={profile.phone || ""}
+                onChange={(e) => update("phone", e.target.value)}
+                placeholder="e.g. +1 555-0123"
               />
 
               <Select
@@ -455,8 +475,89 @@ export default function ProfileSetup() {
               onChange={handleSkillsChange}
               error={errors.skills}
             />
+          </fieldset>
 
-           
+          {/* Section 5 — Matching Preferences */}
+          <fieldset className="profile-setup__section">
+            <legend className="profile-setup__legend">
+              <span className="profile-setup__legend-number">5</span>
+              Matching Preferences
+            </legend>
+
+            <div className="profile-setup__grid">
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <Input
+                  id="ageMin"
+                  label="Min Age"
+                  type="number"
+                  value={profile.matchingPreferences?.ageRange?.min || 18}
+                  onChange={(e) => {
+                    const min = parseInt(e.target.value) || 18;
+                    update("matchingPreferences", {
+                      ...profile.matchingPreferences,
+                      ageRange: { ...profile.matchingPreferences.ageRange, min }
+                    });
+                  }}
+                  min="18" max="100"
+                />
+                <Input
+                  id="ageMax"
+                  label="Max Age"
+                  type="number"
+                  value={profile.matchingPreferences?.ageRange?.max || 100}
+                  onChange={(e) => {
+                    const max = parseInt(e.target.value) || 100;
+                    update("matchingPreferences", {
+                      ...profile.matchingPreferences,
+                      ageRange: { ...profile.matchingPreferences.ageRange, max }
+                    });
+                  }}
+                  min="18" max="100"
+                />
+              </div>
+
+              <Select
+                id="locationPreference"
+                label="Location Preference"
+                value={profile.matchingPreferences?.locationPreference || "Global"}
+                onChange={(e) => update("matchingPreferences", {
+                  ...profile.matchingPreferences,
+                  locationPreference: e.target.value
+                })}
+                options={[
+                  { value: "Local", label: "Local Only" },
+                  { value: "Same Country", label: "Same Country" },
+                  { value: "Global", label: "Global" },
+                ]}
+              />
+
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>
+                  Preferred Member Types
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                  {MEMBER_TYPE_OPTIONS.map(opt => (
+                    <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: "0.25rem", background: "#f3f4f6", padding: "0.25rem 0.5rem", borderRadius: "4px", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={profile.matchingPreferences?.preferredMemberTypes?.includes(opt.value)}
+                        onChange={(e) => {
+                          const types = profile.matchingPreferences?.preferredMemberTypes || [];
+                          const nextTypes = e.target.checked
+                            ? [...types, opt.value]
+                            : types.filter(t => t !== opt.value);
+                          update("matchingPreferences", {
+                            ...profile.matchingPreferences,
+                            preferredMemberTypes: nextTypes
+                          });
+                        }}
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
           </fieldset>
 
           {/* Submit */}
