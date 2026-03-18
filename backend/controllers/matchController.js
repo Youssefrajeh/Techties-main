@@ -1,6 +1,20 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
 
+// Helper: compute age from a date-of-birth string
+function computeAge(dob) {
+  if (!dob) return null;
+  const birthDate = new Date(dob);
+  if (isNaN(birthDate.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 // @desc    Get match recommendations for the current paid member
 // @route   GET /api/matches/recommendations
 // @access  Private (Paid Members only)
@@ -21,16 +35,17 @@ exports.getMatchRecommendations = async (req, res) => {
     // 3. Find all other profiles (don't match with self)
     const otherProfiles = await Profile.find({ user: { $ne: req.user } }).populate("user", ["name"]);
 
-    // 4. Calculate match scores based on multiple factors
-    let recommendations = otherProfiles.map((profile) => {
+    // 4. Calculate match scores — skip profiles with no valid user
+    let recommendations = otherProfiles
+      .filter(profile => profile.user != null) // guard against orphaned profiles
+      .map((profile) => {
       let score = 0;
       let sharedSkills = [];
-      let breakdown = {
-        skills: 0,
-        location: 0,
-        memberType: 0,
-        age: 0
-      };
+      let breakdown = { skills: 0, location: 0, memberType: 0, age: 0 };
+
+      // Compute ages from DOB for accurate matching
+      const currentAge = computeAge(currentProfile.dob);
+      const targetAge  = computeAge(profile.dob);
 
       // --- 4.1 Skills Matching (40% Weight) ---
       if (currentProfile.skills && profile.skills && profile.skills.length > 0) {
@@ -65,9 +80,9 @@ exports.getMatchRecommendations = async (req, res) => {
       }
 
       // --- 4.4 Age Preference (10% Weight) ---
-      if (currentProfile.matchingPreferences?.ageRange && profile.age) {
+      if (currentProfile.matchingPreferences?.ageRange && targetAge !== null) {
         const { min, max } = currentProfile.matchingPreferences.ageRange;
-        if (profile.age >= min && profile.age <= max) {
+        if (targetAge >= min && targetAge <= max) {
           score += 10;
           breakdown.age = 10;
         }
@@ -79,7 +94,7 @@ exports.getMatchRecommendations = async (req, res) => {
         photo: profile.photo,
         bio: profile.bio,
         location: profile.location,
-        age: profile.age,
+        age: targetAge,          // always computed from DOB
         memberType: profile.memberType,
         skills: profile.skills,
         matchScore: Math.round(score),
@@ -89,9 +104,9 @@ exports.getMatchRecommendations = async (req, res) => {
       };
     });
 
-    // 5. Sort matches by highest score first and filter out anyone with < 10 score
+    // 5. Sort matches, keep scores >= 5 so seeded data is visible
     recommendations = recommendations
-      .filter(match => match.matchScore >= 10)
+      .filter(match => match.matchScore >= 5)
       .sort((a, b) => b.matchScore - a.matchScore);
 
     res.json(recommendations);

@@ -167,11 +167,11 @@ const MatchRecommendations = () => {
                       <img src={match.photo} alt="Profile" className="match-avatar" />
                     ) : (
                       <div className="match-avatar-placeholder">
-                         {match.user.name ? match.user.name.charAt(0).toUpperCase() : '?'}
+                         {match.user?.name ? match.user.name.charAt(0).toUpperCase() : '?'}
                       </div>
                     )}
                     <div>
-                      <h3>{match.user.name}</h3>
+                      <h3>{match.user?.name || 'Unknown User'}</h3>
                       <div className="match-meta">
                         <span className="match-age">{match.age} years old</span>
                         <span className="match-city">• {match.location}</span>
@@ -222,7 +222,7 @@ const MatchRecommendations = () => {
                                   'Content-Type': 'application/json',
                                   'Authorization': localStorage.getItem('token')
                                 },
-                                body: JSON.stringify({ matchedUserId: match.user._id, score: 5, comments: 'Good match' })
+                                body: JSON.stringify({ matchedUserId: match.user?._id, score: 5, comments: 'Good match' })
                               });
                               e.target.innerText = "✅ Good";
                             } catch(err) {
@@ -243,7 +243,7 @@ const MatchRecommendations = () => {
                                   'Content-Type': 'application/json',
                                   'Authorization': localStorage.getItem('token')
                                 },
-                                body: JSON.stringify({ matchedUserId: match.user._id, score: 1, comments: 'Poor match' })
+                                body: JSON.stringify({ matchedUserId: match.user?._id, score: 1, comments: 'Poor match' })
                               });
                               e.target.innerText = "✅ Poor";
                             } catch(err) {
