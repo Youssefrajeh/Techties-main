@@ -97,5 +97,12 @@ export const EMPTY_PROFILE = {
   bio: "",
   location: "",
   allowContactShare: false,
+  phone: "",
+  age: 18,
+  matchingPreferences: {
+    ageRange: { min: 18, max: 100 },
+    locationPreference: "Global",
+    preferredMemberTypes: [],
+  },
   skills: [], // [{ name: string, rank: number }]
 };

@@ -1,6 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import './MatchRecommendations.css'; // We will create this
 
+const ContactRevealer = ({ userId }) => {
+  const [contact, setContact] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const revealContact = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/matches/contact/${userId}`, {
+        headers: {
+          'Authorization': localStorage.getItem('token'),
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || 'Failed to fetch contact');
+      setContact(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (contact) {
+    return (
+      <div className="revealed-contact">
+        <div>Email: <a href={`mailto:${contact.email}`}>{contact.email}</a></div>
+        <div>Phone: {contact.phone}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="contact-reveal-container">
+      {error && <span className="reveal-error">{error}</span>}
+      <button 
+        className="button button--sm button--ghost" 
+        onClick={revealContact}
+        disabled={loading}
+        style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}
+      >
+        {loading ? 'Revealing...' : '👁️ Reveal Contact Info'}
+      </button>
+    </div>
+  );
+};
+
 const MatchRecommendations = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,21 +163,32 @@ const MatchRecommendations = () => {
               {recommendations.map((match, index) => (
                 <div key={index} className="match-card">
                   <div className="match-header">
-                    {match.profile.photo ? (
-                      <img src={match.profile.photo} alt="Profile" className="match-avatar" />
+                    {match.photo ? (
+                      <img src={match.photo} alt="Profile" className="match-avatar" />
                     ) : (
                       <div className="match-avatar-placeholder">
-                         {match.profile.user.name ? match.profile.user.name.charAt(0).toUpperCase() : '?'}
+                         {match.user.name ? match.user.name.charAt(0).toUpperCase() : '?'}
                       </div>
                     )}
                     <div>
-                      <h3>{match.profile.user.name}</h3>
-                      <span className="match-score">Match Score: {match.matchScore}</span>
+                      <h3>{match.user.name}</h3>
+                      <div className="match-meta">
+                        <span className="match-age">{match.age} years old</span>
+                        <span className="match-city">• {match.location}</span>
+                      </div>
+                      <span className="match-score">Overall Match: {match.matchScore}%</span>
                     </div>
                   </div>
                   
                   <div className="match-body">
-                    {match.profile.bio && <p className="match-bio">"{match.profile.bio}"</p>}
+                    <div className="score-breakdown">
+                      <div className="score-tag">Skills: {match.scoreBreakdown.skills}/40</div>
+                      <div className="score-tag">Location: {match.scoreBreakdown.location}/30</div>
+                      <div className="score-tag">Type: {match.scoreBreakdown.memberType}/20</div>
+                      <div className="score-tag">Age: {match.scoreBreakdown.age}/10</div>
+                    </div>
+
+                    {match.bio && <p className="match-bio">"{match.bio}"</p>}
                     
                     <div className="shared-skills">
                       <strong>Shared Skills: </strong>
@@ -138,10 +197,10 @@ const MatchRecommendations = () => {
                       ))}
                     </div>
 
-                    {match.profile.allowContactShare && (
+                    {match.allowContactShare && (
                       <div className="match-contact">
                         <strong>Contact: </strong>
-                        <a href={`mailto:${match.profile.user.email}`}>{match.profile.user.email}</a>
+                        <ContactRevealer userId={match.user._id} />
                       </div>
                     )}
                   </div>
@@ -163,7 +222,7 @@ const MatchRecommendations = () => {
                                   'Content-Type': 'application/json',
                                   'Authorization': localStorage.getItem('token')
                                 },
-                                body: JSON.stringify({ matchedUserId: match.profile.user._id, score: 5, comments: 'Good match' })
+                                body: JSON.stringify({ matchedUserId: match.user._id, score: 5, comments: 'Good match' })
                               });
                               e.target.innerText = "✅ Good";
                             } catch(err) {
@@ -184,7 +243,7 @@ const MatchRecommendations = () => {
                                   'Content-Type': 'application/json',
                                   'Authorization': localStorage.getItem('token')
                                 },
-                                body: JSON.stringify({ matchedUserId: match.profile.user._id, score: 1, comments: 'Poor match' })
+                                body: JSON.stringify({ matchedUserId: match.user._id, score: 1, comments: 'Poor match' })
                               });
                               e.target.innerText = "✅ Poor";
                             } catch(err) {

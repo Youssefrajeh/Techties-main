@@ -60,9 +60,31 @@ const ProfileSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    phone: {
+      type: String,
+      default: "",
+    },
     skills: {
       type: [String],
       default: [],
+    },
+    age: {
+      type: Number,
+      default: 18,
+    },
+    matchingPreferences: {
+      ageRange: {
+        min: { type: Number, default: 18 },
+        max: { type: Number, default: 100 },
+      },
+      locationPreference: {
+        type: String,
+        default: "Global",
+      },
+      preferredMemberTypes: {
+        type: [String],
+        default: [],
+      },
     },
     preferences: {
       type: [String],

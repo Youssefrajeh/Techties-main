@@ -20,37 +20,79 @@ exports.getMatchRecommendations = async (req, res) => {
 
     // 3. Find all other profiles (don't match with self)
     // In a real app, you'd limit this pool based on location or other factors
-    const otherProfiles = await Profile.find({ user: { $ne: req.user.id } }).populate("user", ["name", "email"]);
+    const otherProfiles = await Profile.find({ user: { $ne: req.user.id } }).populate("user", ["name"]);
 
-    // 4. Calculate match scores based on overlapping skills
+    // 4. Calculate match scores based on multiple factors
     let recommendations = otherProfiles.map((profile) => {
       let score = 0;
       let sharedSkills = [];
+      let breakdown = {
+        skills: 0,
+        location: 0,
+        memberType: 0,
+        age: 0
+      };
 
-      // Simple matching logic: +1 score for every shared skill
-      if (currentProfile.skills && profile.skills) {
+      // --- 4.1 Skills Matching (40% Weight) ---
+      if (currentProfile.skills && profile.skills && profile.skills.length > 0) {
+        let matchCount = 0;
         profile.skills.forEach(skill => {
-          // Normalize skills to lowercase for better matching
           const skillLower = skill.toLowerCase().trim();
-          const userHasSkill = currentProfile.skills.some(userSkill => userSkill.toLowerCase().trim() === skillLower);
-          
-          if (userHasSkill) {
-            score += 1;
+          if (currentProfile.skills.some(userSkill => userSkill.toLowerCase().trim() === skillLower)) {
+            matchCount++;
             sharedSkills.push(skill);
           }
         });
+        const skillScore = (matchCount / profile.skills.length) * 40;
+        score += skillScore;
+        breakdown.skills = Math.round(skillScore);
+      }
+
+      // --- 4.2 Location Matching (30% Weight) ---
+      if (currentProfile.location && profile.location) {
+        if (currentProfile.location.toLowerCase().trim() === profile.location.toLowerCase().trim()) {
+          score += 30;
+          breakdown.location = 30;
+        }
+      }
+
+      // --- 4.3 Member Type Alignment (20% Weight) ---
+      // Logic: If the other user's memberType is in the current user's preferredMemberTypes
+      if (currentProfile.matchingPreferences?.preferredMemberTypes?.length > 0 && profile.memberType) {
+        if (currentProfile.matchingPreferences.preferredMemberTypes.includes(profile.memberType)) {
+          score += 20;
+          breakdown.memberType = 20;
+        }
+      }
+
+      // --- 4.4 Age Preference (10% Weight) ---
+      if (currentProfile.matchingPreferences?.ageRange && profile.age) {
+        const { min, max } = currentProfile.matchingPreferences.ageRange;
+        if (profile.age >= min && profile.age <= max) {
+          score += 10;
+          breakdown.age = 10;
+        }
       }
 
       return {
-        profile: profile,
-        matchScore: score,
-        sharedSkills: sharedSkills
+        profileId: profile._id,
+        user: profile.user,
+        photo: profile.photo,
+        bio: profile.bio,
+        location: profile.location,
+        age: profile.age,
+        memberType: profile.memberType,
+        skills: profile.skills,
+        matchScore: Math.round(score),
+        sharedSkills: sharedSkills,
+        scoreBreakdown: breakdown,
+        allowContactShare: profile.allowContactShare
       };
     });
 
-    // 5. Sort matches by highest score first and filter out anyone with 0 shared skills
+    // 5. Sort matches by highest score first and filter out anyone with < 10 score
     recommendations = recommendations
-      .filter(match => match.matchScore > 0)
+      .filter(match => match.matchScore >= 10)
       .sort((a, b) => b.matchScore - a.matchScore);
 
     res.json(recommendations);
@@ -58,5 +100,47 @@ exports.getMatchRecommendations = async (req, res) => {
   } catch (error) {
     console.error("Match generation error:", error);
     res.status(500).send("Server error generating matches");
+  }
+};
+
+// @desc    Get contact details for a matched user
+// @route   GET /api/matches/contact/:matchedUserId
+// @access  Private (Paid Members only)
+exports.getMatchContact = async (req, res) => {
+  try {
+    const { matchedUserId } = req.params;
+
+    // 1. Verify current user is paid
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || !currentUser.isPaid) {
+      return res.status(403).json({ msg: "Paid membership required." });
+    }
+
+    // 2. Get profiles
+    const currentProfile = await Profile.findOne({ user: req.user.id });
+    const targetProfile = await Profile.findOne({ user: matchedUserId }).populate("user", ["email", "name"]);
+
+    if (!currentProfile || !targetProfile) {
+      return res.status(404).json({ msg: "Profile not found." });
+    }
+
+    // 3. Check target user consent
+    if (!targetProfile.allowContactShare) {
+      return res.status(403).json({ msg: "This user has not shared their contact information." });
+    }
+
+    // 4. Verify match exists (In simple terms, just check they are different users)
+    if (req.user.id === matchedUserId) {
+        return res.status(400).json({ msg: "Cannot fetch your own contact info here." });
+    }
+    
+    res.json({
+      email: targetProfile.user.email,
+      phone: targetProfile.phone || "No phone provided"
+    });
+
+  } catch (error) {
+    console.error("Contact retrieval error:", error);
+    res.status(500).send("Server error");
   }
 };
