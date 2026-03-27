@@ -7,6 +7,7 @@ import PhotoUpload from "../components/PhotoUpload";
 import SkillsInput from "../components/SkillsInput";
 import { getSession, clearNewUserFlag } from "../utils/auth";
 import { saveProfile, EMPTY_PROFILE } from "../utils/profileStore";
+import { computeAge } from "../utils/dateUtils";
 import "./ProfileSetup.css";
 
 const SALUTATION_OPTIONS = [
@@ -142,6 +143,20 @@ export default function ProfileSetup() {
 
     if (!error && errors.photo) {
       setErrors((prev) => ({ ...prev, photo: "" }));
+    }
+  };
+
+  const handleDobChange = (e) => {
+    const dob = e.target.value;
+    const age = computeAge(dob);
+    setProfile((prev) => ({
+      ...prev,
+      dob,
+      age: age !== null ? age : prev.age,
+    }));
+
+    if (errors.dob) {
+      setErrors((prev) => ({ ...prev, dob: "" }));
     }
   };
 
@@ -303,7 +318,7 @@ export default function ProfileSetup() {
                 label="Date of Birth"
                 type="date"
                 value={profile.dob}
-                onChange={(e) => update("dob", e.target.value)}
+                onChange={handleDobChange}
                 error={errors.dob}
                 required
               />

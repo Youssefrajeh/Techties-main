@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const User = require("./models/User");
 const Profile = require("./models/Profile");
+const { computeAge } = require("./utils/dateUtils");
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -78,14 +79,6 @@ function pickN(arr, n) {
   return shuffled.slice(0, n);
 }
 
-function computeAge(dob) {
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-  return age;
-}
 
 async function seed() {
   await mongoose.connect(MONGO_URI);

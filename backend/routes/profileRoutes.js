@@ -1,6 +1,7 @@
 const express = require("express");
 const Profile = require("../models/Profile");
 const auth = require("../middleware/authMiddleware");
+const { computeAge } = require("../utils/dateUtils");
 
 const router = express.Router();
 
@@ -39,17 +40,7 @@ router.post("/", auth, async (req, res) => {
         ? req.body.allowContactShare
         : false,
     phone: req.body.phone || "",
-    age: (() => {
-      // Always compute age from DOB for accuracy
-      if (!req.body.dob) return null;
-      const birthDate = new Date(req.body.dob);
-      if (isNaN(birthDate.getTime())) return null;
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-      return age;
-    })(),
+    age: computeAge(req.body.dob),
     matchingPreferences: {
       ageRange: {
         min: req.body.matchingPreferences?.ageRange?.min ?? 18,
