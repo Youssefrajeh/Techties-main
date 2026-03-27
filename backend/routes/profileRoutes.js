@@ -92,4 +92,46 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// GET a specific user's public profile by their user ID
+router.get("/:userId", auth, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.params.userId }).populate(
+      "user",
+      "name email"
+    );
+
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    // Build the public profile response
+    const publicProfile = {
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      salutation: profile.salutation,
+      nickname: profile.nickname,
+      gender: profile.gender,
+      memberType: profile.memberType,
+      photo: profile.photo,
+      bio: profile.bio,
+      location: profile.location,
+      skills: profile.skills,
+      age: profile.age,
+      user: profile.user,
+    };
+
+    // Only include contact details if the user opted in
+    if (profile.allowContactShare) {
+      publicProfile.email = profile.email;
+      publicProfile.phone = profile.phone;
+      publicProfile.contactMethod = profile.contactMethod;
+    }
+
+    res.json(publicProfile);
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

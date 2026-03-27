@@ -1,0 +1,214 @@
+/* ── ViewProfile Page Styles ── */
+
+.view-profile {
+  min-height: 100vh;
+  background: #f0f4f8;
+}
+
+.view-profile__container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.view-profile__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #3498db;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+}
+
+.view-profile__back:hover {
+  color: #2176bd;
+}
+
+/* ── Card wrapper ── */
+.view-profile__card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+/* ── Header banner + avatar ── */
+.view-profile__header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem 2rem 1.5rem;
+  background: linear-gradient(135deg, #f6f8fb 0%, #e5eef9 100%);
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.view-profile__avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.view-profile__avatar-placeholder {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #3498db;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.view-profile__name {
+  font-size: 1.6rem;
+  margin: 0 0 0.15rem;
+  color: #2c3e50;
+}
+
+.view-profile__nickname {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin: 0 0 0.4rem;
+}
+
+.view-profile__badge {
+  display: inline-block;
+  background: #3498db;
+  color: #fff;
+  padding: 0.2rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── Body sections ── */
+.view-profile__body {
+  padding: 2rem;
+}
+
+.view-profile__section {
+  margin-bottom: 1.75rem;
+}
+
+.view-profile__section:last-child {
+  margin-bottom: 0;
+}
+
+.view-profile__section-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #95a5a6;
+  margin: 0 0 0.6rem;
+  font-weight: 600;
+}
+
+.view-profile__bio {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.55;
+  font-style: italic;
+  margin: 0;
+}
+
+.view-profile__detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.view-profile__detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.view-profile__detail-label {
+  font-size: 0.8rem;
+  color: #95a5a6;
+  margin-bottom: 0.2rem;
+}
+
+.view-profile__detail-value {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+/* ── Skills pills ── */
+.view-profile__skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.view-profile__skill-pill {
+  display: inline-block;
+  background: #f1f2f6;
+  color: #2f3542;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  border: 1px solid #dfe4ea;
+}
+
+/* ── Contact info section ── */
+.view-profile__contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.view-profile__contact-list li {
+  font-size: 0.95rem;
+  color: #34495e;
+}
+
+.view-profile__contact-list a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.view-profile__contact-list a:hover {
+  text-decoration: underline;
+}
+
+/* ── Loading / Error states ── */
+.view-profile__loading,
+.view-profile__error {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.view-profile__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e6ed;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  animation: vp-spin 0.7s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes vp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

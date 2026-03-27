@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './MatchRecommendations.css'; // We will create this
 
 const ContactRevealer = ({ userId }) => {
@@ -50,6 +51,7 @@ const ContactRevealer = ({ userId }) => {
 };
 
 const MatchRecommendations = () => {
+  const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -206,7 +208,7 @@ const MatchRecommendations = () => {
                   </div>
                   
                   <div className="match-actions">
-                    <button className="primary-btn">View Full Profile</button>
+                    <button className="primary-btn" onClick={() => navigate(`/profile/view/${match.user._id}`)}>View Full Profile</button>
                     
                     <div className="feedback-section" style={{ marginTop: "1rem", borderTop: "1px solid #eee", paddingTop: "1rem", textAlign: "center" }}>
                       <span style={{ fontSize: "0.9rem", color: "#666", display: "block", marginBottom: "0.5rem" }}>Rate this match:</span>

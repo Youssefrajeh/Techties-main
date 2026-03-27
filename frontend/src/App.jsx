@@ -6,6 +6,7 @@ import ProfileSetup from './pages/ProfileSetup';
 import ProfileEdit from './pages/ProfileEdit';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
+import ViewProfile from './pages/ViewProfile';
 import MatchRecommendations from './components/MatchRecommendations';
 import { isAuthenticated } from './utils/auth';
 
@@ -53,6 +54,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MatchRecommendations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/view/:userId"
+          element={
+            <ProtectedRoute>
+              <ViewProfile />
             </ProtectedRoute>
           }
         />
