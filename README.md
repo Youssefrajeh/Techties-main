@@ -8,9 +8,11 @@
   <img src="https://img.shields.io/badge/Vite-5.x-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
 </p>
 
-## Overview
+## Overview (Project Overview)
 
-**TechTies** is a full-stack networking platform designed for tech professionals to connect, collaborate, and share skills. It features a modern React frontend powered by Vite and a robust Node.js/Express backend with MongoDB for data persistence.
+**TechTies** is a full-stack networking platform designed for tech professionals to connect, collaborate, and share skills through intelligent match recommendations.
+
+**Type of Application:** Full-Stack Web Application
 
 ---
 
@@ -107,6 +109,23 @@ The project is configured for deployment on **Vercel**.
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+---
+
+## Code Submission Status
+
+The following core features are fully functional and ready for evaluation:
+- **Authentication**: Secure Login/Registration with JWT session management.
+- **Profile Management**: Profile setup, editing, and skill tagging.
+- **Matching System**: Skill-based connection recommendations.
+- **Admin Dashboard**: Comprehensive user and feedback management.
+- **Responsive UI**: Fully mobile-friendly premium design.
+
+---
+
+## Additional Comments
+
+The project is architected with a strict separation of concerns between the React frontend and the Express/Node.js REST API. This modular approach ensures high maintainability and scalability, meeting all structural requirements for the INFO-3112 submission.
 
 ---
 
