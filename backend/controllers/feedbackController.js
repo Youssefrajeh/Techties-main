@@ -21,14 +21,12 @@ exports.submitFeedback = async (req, res) => {
       return res.status(400).json({ msg: "You cannot submit feedback for yourself." });
     }
 
-    const newFeedback = new MatchFeedback({
-      user: req.user.id || req.user,
-      matchedUser: matchedUserId,
-      score: parsedScore,
-      comments: comments || "",
-    });
+    const feedback = await MatchFeedback.findOneAndUpdate(
+      { user: req.user.id || req.user, matchedUser: matchedUserId },
+      { score: parsedScore, comments: comments || "", date: Date.now() },
+      { upsert: true, new: true }
+    );
 
-    const feedback = await newFeedback.save();
     res.json({ success: true, feedback });
 
   } catch (error) {

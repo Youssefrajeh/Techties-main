@@ -178,3 +178,78 @@
 .primary-btn:hover {
   background: #2980b9;
 }
+
+.feedback-section {
+  margin-top: 1rem;
+  border-top: 1px solid #eee;
+  padding-top: 1.25rem;
+  text-align: center;
+}
+
+.feedback-label {
+  font-size: 0.9rem;
+  color: #666;
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.feedback-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.feedback-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.btn-good {
+  border: 1.5px solid #2ecc71;
+  color: #2ecc71;
+}
+
+.btn-good:hover {
+  background: #f0fff4;
+}
+
+.btn-good.selected {
+  background: #2ecc71;
+  color: white;
+  box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
+.btn-poor {
+  border: 1.5px solid #e67e22;
+  color: #e67e22;
+}
+
+.btn-poor:hover {
+  background: #fffaf0;
+}
+
+.btn-poor.selected {
+  background: #e67e22;
+  color: white;
+  box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
+}
+
+.feedback-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.feedback-btn i {
+  font-size: 1rem;
+}

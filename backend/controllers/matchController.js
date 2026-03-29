@@ -1,5 +1,6 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
+const MatchFeedback = require("../models/MatchFeedback");
 const { computeAge } = require("../utils/dateUtils");
 
 // Helper: compute age from a date-of-birth string
@@ -23,6 +24,13 @@ exports.getMatchRecommendations = async (req, res) => {
 
     // 3. Find all other profiles (don't match with self)
     const otherProfiles = await Profile.find({ user: { $ne: req.user } }).populate("user", ["name"]);
+
+    // 3.5 Fetch existing feedback for this user
+    const existingFeedbacks = await MatchFeedback.find({ user: req.user });
+    const feedbackMap = {};
+    existingFeedbacks.forEach(f => {
+      feedbackMap[String(f.matchedUser)] = f.score;
+    });
 
     // 4. Calculate match scores — skip profiles with no valid user
     let recommendations = otherProfiles
@@ -89,7 +97,8 @@ exports.getMatchRecommendations = async (req, res) => {
         matchScore: Math.round(score),
         sharedSkills: sharedSkills,
         scoreBreakdown: breakdown,
-        allowContactShare: profile.allowContactShare
+        allowContactShare: profile.allowContactShare,
+        existingRating: feedbackMap[String(profile.user._id)] || null
       };
     });
 

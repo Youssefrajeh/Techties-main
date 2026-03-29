@@ -90,6 +90,52 @@ const MatchRecommendations = () => {
     fetchMatches();
   }, []);
 
+  const handleRate = async (matchedUserId, score) => {
+    try {
+      // Optimistically update local state
+      setRecommendations(prev => prev.map(match => {
+        if (match.user?._id === matchedUserId) {
+          return { ...match, existingRating: score, isSubmitting: true };
+        }
+        return match;
+      }));
+
+      const res = await fetch('/api/feedback/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('token')
+        },
+        body: JSON.stringify({ 
+          matchedUserId, 
+          score, 
+          comments: score === 5 ? 'Good match' : 'Poor match' 
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to submit feedback');
+
+      // Update state to remove submitting flag
+      setRecommendations(prev => prev.map(match => {
+        if (match.user?._id === matchedUserId) {
+          return { ...match, isSubmitting: false };
+        }
+        return match;
+      }));
+
+    } catch (err) {
+      console.error(err);
+      alert('Error submitting feedback. Please try again.');
+      // Revert optimistic update (simplified: just remove submitting flag)
+      setRecommendations(prev => prev.map(match => {
+        if (match.user?._id === matchedUserId) {
+          return { ...match, isSubmitting: false };
+        }
+        return match;
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard">
@@ -210,50 +256,22 @@ const MatchRecommendations = () => {
                   <div className="match-actions">
                     <button className="primary-btn" onClick={() => navigate(`/profile/view/${match.user._id}`)}>View Full Profile</button>
                     
-                    <div className="feedback-section" style={{ marginTop: "1rem", borderTop: "1px solid #eee", paddingTop: "1rem", textAlign: "center" }}>
-                      <span style={{ fontSize: "0.9rem", color: "#666", display: "block", marginBottom: "0.5rem" }}>Rate this match:</span>
-                      <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+                    <div className="feedback-section">
+                      <span className="feedback-label">Rate this match:</span>
+                      <div className="feedback-buttons">
                         <button 
-                          onClick={async (e) => {
-                            e.target.innerText = "Submitting...";
-                            e.target.disabled = true;
-                            try {
-                              await fetch('/api/feedback/submit', {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': localStorage.getItem('token')
-                                },
-                                body: JSON.stringify({ matchedUserId: match.user?._id, score: 5, comments: 'Good match' })
-                              });
-                              e.target.innerText = "✅ Good";
-                            } catch(err) {
-                              e.target.innerText = "Error";
-                            }
-                          }}
-                          style={{ padding: "0.4rem 1rem", border: "1px solid #4CAF50", color: "#4CAF50", background: "transparent", borderRadius: "4px", cursor: "pointer" }}>
-                          👍 Good
+                          onClick={() => handleRate(match.user?._id, 5)}
+                          disabled={match.isSubmitting}
+                          className={`feedback-btn btn-good ${match.existingRating === 5 ? 'selected' : ''}`}
+                        >
+                          {match.isSubmitting && match.existingRating === 5 ? '...' : '✅ Good'}
                         </button>
                         <button 
-                          onClick={async (e) => {
-                            e.target.innerText = "Submitting...";
-                            e.target.disabled = true;
-                            try {
-                              await fetch('/api/feedback/submit', {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': localStorage.getItem('token')
-                                },
-                                body: JSON.stringify({ matchedUserId: match.user?._id, score: 1, comments: 'Poor match' })
-                              });
-                              e.target.innerText = "✅ Poor";
-                            } catch(err) {
-                               e.target.innerText = "Error";
-                            }
-                          }}
-                          style={{ padding: "0.4rem 1rem", border: "1px solid #f44336", color: "#f44336", background: "transparent", borderRadius: "4px", cursor: "pointer" }}>
-                          👎 Poor
+                          onClick={() => handleRate(match.user?._id, 1)}
+                          disabled={match.isSubmitting}
+                          className={`feedback-btn btn-poor ${match.existingRating === 1 ? 'selected' : ''}`}
+                        >
+                          {match.isSubmitting && match.existingRating === 1 ? '...' : '👎 Poor'}
                         </button>
                       </div>
                     </div>
