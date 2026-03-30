@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
@@ -83,6 +84,38 @@ const FAQ_ITEMS = [
   },
 ];
 
+const PRICING_PLANS = [
+  {
+    name: 'Free',
+    price: '0',
+    description: 'Essential features for tech enthusiasts starting their networking journey.',
+    features: [
+      'Basic profile creation',
+      '5 smart matches per day',
+      'Community message boards',
+      'Public event discovery'
+    ],
+    cta: 'Get Started',
+    variant: 'secondary'
+  },
+  {
+    name: 'Pro',
+    priceMonthly: '10',
+    priceAnnual: '100',
+    description: 'Advanced tools for professionals looking to accelerate their career.',
+    features: [
+      'Unlimited smart matching',
+      'Priority messaging & chat',
+      'Early access to hackathons',
+      'Detailed skill analytics',
+      'Pro verification badge'
+    ],
+    cta: 'Go Pro Now',
+    variant: 'primary',
+    popular: true
+  }
+];
+
 /* ── Star SVG ──────────────────────────────────────── */
 function Star() {
   return (
@@ -94,6 +127,8 @@ function Star() {
 
 /* ── Component ─────────────────────────────────────── */
 export default function Landing() {
+  const [isAnnual, setIsAnnual] = useState(false);
+
   return (
     <>
       <Navbar />
@@ -166,7 +201,62 @@ export default function Landing() {
         </div>
       </Section>
 
+      {/* Pricing */}
+      <Section
+        id="pricing"
+        badge="Pricing"
+        title="Choose the right plan for you"
+        subtitle="Transparent pricing designed to help you grow. Save up to 20% with annual billing."
+      >
+        <div className="pricing-toggle">
+          <span className={!isAnnual ? 'pricing-toggle__label pricing-toggle__label--active' : 'pricing-toggle__label'}>Monthly</span>
+          <button 
+            className={`pricing-toggle__switch ${isAnnual ? 'pricing-toggle__switch--active' : ''}`}
+            onClick={() => setIsAnnual(!isAnnual)}
+            aria-label="Toggle annual pricing"
+          >
+            <div className="pricing-toggle__dot" />
+          </button>
+          <span className={isAnnual ? 'pricing-toggle__label pricing-toggle__label--active' : 'pricing-toggle__label'}>
+            Annually <span className="pricing-toggle__discount">Save 20%</span>
+          </span>
+        </div>
 
+        <div className="pricing-grid">
+          {PRICING_PLANS.map((plan) => (
+            <div key={plan.name} className={`pricing-card ${plan.popular ? 'pricing-card--popular' : ''}`}>
+              {plan.popular && <div className="pricing-card__badge">Most Popular</div>}
+              <h3 className="pricing-card__name">{plan.name}</h3>
+              <p className="pricing-card__desc">{plan.description}</p>
+              <div className="pricing-card__price">
+                <span className="pricing-card__currency">CAD$</span>
+                <span className="pricing-card__amount">
+                  {plan.name === 'Free' ? plan.price : (isAnnual ? plan.priceAnnual : plan.priceMonthly)}
+                </span>
+                <span className="pricing-card__period">
+                  {plan.name === 'Free' ? '/mo' : (isAnnual ? '/yr' : '/mo')}
+                </span>
+              </div>
+              <ul className="pricing-card__features">
+                {plan.features.map(feat => (
+                  <li key={feat} className="pricing-card__feature">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                variant={plan.variant} 
+                fullWidth 
+                to="/register"
+                size="lg"
+              >
+                {plan.cta}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       {/* FAQ */}
       <Section
