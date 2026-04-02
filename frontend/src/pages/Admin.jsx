@@ -545,6 +545,15 @@ export default function Admin() {
 
                                 <button
                                   type="button"
+                                  className="admin-btn admin-btn--sm admin-btn--outline"
+                                  onClick={() => handleResetPassword(u._id)}
+                                  style={{ color: '#d97706', borderColor: '#fcd34b' }}
+                                >
+                                  Reset Pass
+                                </button>
+
+                                <button
+                                  type="button"
                                   className="admin-btn admin-btn--sm admin-btn--danger"
                                   onClick={() => handleDeleteUser(u)}
                                   disabled={deletingUserId === u._id}
