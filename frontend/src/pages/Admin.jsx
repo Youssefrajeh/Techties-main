@@ -666,6 +666,49 @@ export default function Admin() {
           </section>
         )}
       </div>
+
+      {resetModalUser && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <h3 className="admin-modal-title">Reset Password</h3>
+            <p className="admin-modal-subtitle">
+              Set a new temporary password for <strong>{resetModalUser.name}</strong>
+            </p>
+            
+            <div className="admin-modal-body">
+              <label className="admin-label">New Password</label>
+              <input 
+                type="text" 
+                className="admin-input" 
+                placeholder="Minimum 8 characters"
+                value={resetModalPassword}
+                onChange={(e) => setResetModalPassword(e.target.value)}
+                autoFocus
+              />
+              <p className="admin-muted" style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                Note: This will be a temporary password.
+              </p>
+            </div>
+
+            <div className="admin-modal-footer">
+              <button 
+                className="admin-btn admin-btn--outline" 
+                onClick={() => setResetModalUser(null)}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button 
+                className="admin-btn admin-btn--primary" 
+                onClick={confirmResetPassword}
+                disabled={saving || resetModalPassword.length < 8}
+              >
+                {saving ? 'Resetting...' : 'Confirm Reset'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
