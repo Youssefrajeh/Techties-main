@@ -17,8 +17,29 @@ export default function Dashboard() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [interests, setInterests] = useState([]);
+  const [interestsLoading, setInterestsLoading] = useState(false);
 
   const fromProfileSetup = location.state?.fromProfileSetup === true;
+
+  const loadInterests = async () => {
+    setInterestsLoading(true);
+    try {
+      const res = await fetch('/api/matches/received-interest', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInterests(data);
+      }
+    } catch (err) {
+      console.error('Failed to load interests:', err);
+    } finally {
+      setInterestsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!sessionEmail) {
@@ -67,6 +88,7 @@ export default function Dashboard() {
 
             saveProfile(sessionEmail, profileData);
             setProfile(profileData);
+            await loadInterests();
             return;
           }
         }
@@ -228,6 +250,55 @@ export default function Dashboard() {
             {profile.location && (
               <p className="dashboard__location">📍 {profile.location}</p>
             )}
+
+            <div className="dashboard__main">
+            <section className="dashboard__section">
+              <h2 className="dashboard__section-title">People Interested in You</h2>
+              <div className="dashboard__card" style={{ padding: '0' }}>
+                {interestsLoading ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading interests...</div>
+                ) : interests.length > 0 ? (
+                  <div className="dashboard__interests-list">
+                    {interests.map((item, idx) => (
+                      <div 
+                        key={idx} 
+                        style={{ 
+                          padding: '1rem 1.5rem', 
+                          borderBottom: idx === interests.length - 1 ? 'none' : '1px solid #f1f5f9',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div>
+                          <Link to={`/profile/view/${item.userId}`} style={{ fontWeight: 600, color: '#2563eb', textDecoration: 'none' }}>
+                            {item.userName}
+                          </Link>
+                          <span style={{ marginLeft: '0.5rem', color: '#475569' }}>
+                            {item.type === 'like' ? '❤️ liked your profile' : '👁️ revealed your contact info'}
+                          </span>
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                            {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" to={`/profile/view/${item.userId}`}>
+                          View Profile
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                    No one has shown interest yet. Keep improving your profile!
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="dashboard__section">
+              <h2 className="dashboard__section-title">Matches for You</h2>
+            </section>
+            </div>
 
             <div className="dashboard__details">
               <div className="dashboard__detail">

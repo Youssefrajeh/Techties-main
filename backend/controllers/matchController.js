@@ -166,3 +166,44 @@ exports.getMatchContact = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
+// @desc    Get users who have showed interest in the current user
+// @route   GET /api/matches/received-interest
+// @access  Private
+exports.getReceivedInterest = async (req, res) => {
+  try {
+    // 1. Find people who liked (scored=5) the user
+    const likes = await MatchFeedback.find({ matchedUser: req.user, score: 5 })
+      .populate("user", ["name", "email"])
+      .sort({ date: -1 })
+      .limit(20);
+
+    // 2. Find people who revealed the user's contact info
+    const reveals = await ContactLog.find({ recipient: req.user })
+      .populate("sender", ["name", "email"])
+      .sort({ date: -1 })
+      .limit(20);
+
+    // 3. Combine and format
+    const combined = [
+      ...likes.map(l => ({
+        type: 'like',
+        userId: l.user._id,
+        userName: l.user.name,
+        date: l.date
+      })),
+      ...reveals.map(r => ({
+        type: 'reveal',
+        userId: r.sender._id,
+        userName: r.sender.name,
+        date: r.date
+      }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json(combined);
+
+  } catch (error) {
+    console.error("Received Interest Error:", error);
+    res.status(500).send("Server error");
+  }
+};
