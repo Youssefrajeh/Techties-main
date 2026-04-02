@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Button from "../components/Button";
-import ContactForm from "../components/ContactForm";
 import "./ViewProfile.css";
 
 export default function ViewProfile() {
@@ -11,7 +10,9 @@ export default function ViewProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showContactForm, setShowContactForm] = useState(false);
+  const [revealedContact, setRevealedContact] = useState(null);
+  const [revealLoading, setRevealLoading] = useState(false);
+  const [revealError, setRevealError] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -41,6 +42,27 @@ export default function ViewProfile() {
 
     fetchProfile();
   }, [userId]);
+
+  const handleRevealContact = async () => {
+    setRevealLoading(true);
+    setRevealError("");
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/matches/contact/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.msg || "Failed to reveal contact.");
+      }
+      const data = await res.json();
+      setRevealedContact(data);
+    } catch (err) {
+      setRevealError(err.message);
+    } finally {
+      setRevealLoading(false);
+    }
+  };
 
   // Build display name from profile fields
   const displayName = profile
@@ -122,9 +144,42 @@ export default function ViewProfile() {
             </div>
 
             <div className="view-profile__actions">
-              <Button variant="primary" onClick={() => setShowContactForm(true)}>
-                ✉️ Send Message
-              </Button>
+              {profile && profile.allowContactShare ? (
+                <>
+                  {!revealedContact ? (
+                    <Button 
+                      variant="primary" 
+                      onClick={handleRevealContact}
+                      disabled={revealLoading}
+                    >
+                      {revealLoading ? "Revealing..." : "👁️ Reveal Contact Info"}
+                    </Button>
+                  ) : (
+                    <div className="revealed-contact-box" style={{ 
+                      padding: "1rem", 
+                      backgroundColor: "#f0fdf4", 
+                      borderRadius: "12px", 
+                      border: "1px solid #bcf0da",
+                      boxShadow: "0 4px 6px rgba(0,0,0,0.05)"
+                    }}>
+                      <div style={{ fontWeight: 700, color: "#065f46", marginBottom: "0.5rem" }}>
+                        ✅ Contact Method: {revealedContact.contactMethod || "External"}
+                      </div>
+                      <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#047857", marginBottom: "0.5rem" }}>
+                        {revealedContact.contactIdentifier}
+                      </div>
+                      <div style={{ fontSize: "0.9rem", color: "#059669" }}>
+                        Email: <a href={`mailto:${revealedContact.email}`} style={{ color: "#059669", fontWeight: 600 }}>{revealedContact.email}</a>
+                      </div>
+                    </div>
+                  )}
+                  {revealError && <p style={{ color: "red", fontSize: "0.85rem", marginTop: "0.5rem" }}>{revealError}</p>}
+                </>
+              ) : (
+                <p className="view-profile__muted" style={{ fontSize: "0.9rem", color: "#64748b", fontStyle: "italic" }}>
+                  This user has not enabled contact sharing.
+                </p>
+              )}
             </div>
           </div>
 
@@ -197,13 +252,6 @@ export default function ViewProfile() {
             )}
           </div>
         </div>
-        {showContactForm && (
-          <ContactForm
-            recipientId={userId}
-            recipientName={profile.firstName + " " + profile.lastName}
-            onClose={() => setShowContactForm(false)}
-          />
-        )}
       </div>
     </div>
   );
