@@ -14,7 +14,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     const newMessage = new Message({
-      sender: req.user.id,
+      sender: req.user,
       recipient: recipientId,
       subject,
       content,

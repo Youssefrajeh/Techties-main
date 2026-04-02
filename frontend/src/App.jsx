@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import ViewProfile from './pages/ViewProfile';
 import MatchRecommendations from './components/MatchRecommendations';
+import Inbox from './pages/Inbox';
 import { isAuthenticated } from './utils/auth';
 
 /* ── Protected Route wrapper ──────────────────────── */
@@ -54,6 +55,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MatchRecommendations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <Inbox />
             </ProtectedRoute>
           }
         />
