@@ -39,6 +39,8 @@ export default function Admin() {
   const [editPaid, setEditPaid] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const [resetModalUser, setResetModalUser] = useState(null); // { id, name }
+  const [resetModalPassword, setResetModalPassword] = useState('');
 
   // filters / search
   const [userSearch, setUserSearch] = useState('');
@@ -203,30 +205,35 @@ export default function Admin() {
     }
   };
 
-  const handleResetPassword = async (userId) => {
-    const newPassword = prompt("Enter a new temporary password for this user (min 8 chars):");
-    if (!newPassword) return;
-    if (newPassword.length < 8) {
+  const handleResetPassword = (u) => {
+    setResetModalUser({ id: u._id, name: u.name || u.email });
+    setResetModalPassword('');
+  };
+
+  const confirmResetPassword = async () => {
+    if (!resetModalUser) return;
+    if (resetModalPassword.length < 8) {
       alert("Password must be at least 8 characters long.");
       return;
     }
 
     try {
-      setLoading(true);
-      const res = await api(`/admin/users/${userId}/reset-password`, {
+      setSaving(true);
+      const res = await api(`/admin/users/${resetModalUser.id}/reset-password`, {
         method: 'POST',
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ newPassword: resetModalPassword }),
       });
       if (res.ok) {
-        alert("Password reset successfully!");
+        setBanner({ type: 'success', text: `Password for ${resetModalUser.name} reset successfully!` });
+        setResetModalUser(null);
       } else {
         const data = await res.json();
-        alert(`Error: ${data.msg || "Failed to reset password"}`);
+        setBanner({ type: 'error', text: data.msg || "Failed to reset password" });
       }
     } catch {
-      alert("Network error resetting password.");
+      setBanner({ type: 'error', text: "Network error resetting password." });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -546,7 +553,7 @@ export default function Admin() {
                                 <button
                                   type="button"
                                   className="admin-btn admin-btn--sm admin-btn--outline"
-                                  onClick={() => handleResetPassword(u._id)}
+                                  onClick={() => handleResetPassword(u)}
                                   style={{ color: '#d97706', borderColor: '#fcd34b' }}
                                 >
                                   Reset Pass
