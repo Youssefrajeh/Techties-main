@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema(
     },
     isPaid: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     date: {
       type: Date,

@@ -78,6 +78,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPaid, setIsPaid] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [passwordChecks, setPasswordChecks] = useState(passwordRules(""));
@@ -164,6 +165,7 @@ export default function Register() {
           name: name.trim(),
           email: email.trim(),
           password: password.trim(),
+          isPaid,
         }),
       });
   
@@ -343,6 +345,42 @@ export default function Register() {
               required
               autoComplete="new-password"
             />
+
+            <div className="register-member-type" style={{ marginBottom: '1.5rem' }}>
+              <p style={{ marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.95rem' }}>Membership Type</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsPaid(false)}
+                  style={{
+                    padding: '0.75rem',
+                    borderRadius: '10px',
+                    border: `2px solid ${!isPaid ? 'var(--color-primary, #3b82f6)' : '#e5e7eb'}`,
+                    background: !isPaid ? 'rgba(59, 130, 246, 0.05)' : '#fff',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Free</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Basic matching</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPaid(true)}
+                  style={{
+                    padding: '0.75rem',
+                    borderRadius: '10px',
+                    border: `2px solid ${isPaid ? 'var(--color-primary, #3b82f6)' : '#e5e7eb'}`,
+                    background: isPaid ? 'rgba(59, 130, 246, 0.05)' : '#fff',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Paid</div>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Priority access</div>
+                </button>
+              </div>
+            </div>
             {passwordMatch === true && (
               <div className="password-match success">✔ Passwords match</div>
             )}

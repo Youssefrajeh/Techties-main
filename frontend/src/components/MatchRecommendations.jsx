@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './MatchRecommendations.css'; // We will create this
+import './MatchRecommendations.css';
+import ContactForm from './ContactForm';
 
 const ContactRevealer = ({ userId }) => {
   const [contact, setContact] = useState(null);
@@ -55,6 +54,7 @@ const MatchRecommendations = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedContact, setSelectedContact] = useState(null);
 
   // Dummy fetch to represent calling the new API until we have auth wired up in the UI
   useEffect(() => {
@@ -109,7 +109,7 @@ const MatchRecommendations = () => {
         body: JSON.stringify({ 
           matchedUserId, 
           score, 
-          comments: score === 5 ? 'Good match' : 'Poor match' 
+          comments: score === 5 ? 'Liked' : 'Skipped' 
         })
       });
 
@@ -246,9 +246,16 @@ const MatchRecommendations = () => {
                     </div>
 
                     {match.allowContactShare && (
-                      <div className="match-contact">
-                        <strong>Contact: </strong>
+                      <div className="match-contact" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <strong>Contact Info: </strong>
                         <ContactRevealer userId={match.user._id} />
+                        <button 
+                          className="button button--sm button--primary"
+                          onClick={() => setSelectedContact({ id: match.user._id, name: match.user.name })}
+                          style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}
+                        >
+                          ✉️ Send Message
+                        </button>
                       </div>
                     )}
                   </div>
@@ -261,7 +268,7 @@ const MatchRecommendations = () => {
                         <div className="feedback-result" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <span className="feedback-label">Rating submitted:</span>
                           <div className={`feedback-btn selected ${match.existingRating === 5 ? 'btn-good' : 'btn-poor'}`} style={{ cursor: 'default', margin: '0 auto' }}>
-                            {match.existingRating === 5 ? '✅ Good' : '👎 Poor'}
+                            {match.existingRating === 5 ? '❤️ Liked' : '⏭️ Skipped'}
                           </div>
                           <button 
                             onClick={() => {
@@ -287,21 +294,21 @@ const MatchRecommendations = () => {
                         </div>
                       ) : (
                         <>
-                          <span className="feedback-label">Rate this match:</span>
+                          <span className="feedback-label">Your decision:</span>
                           <div className="feedback-buttons">
                             <button 
                               onClick={() => handleRate(match.user?._id, 5)}
                               disabled={match.isSubmitting}
                               className="feedback-btn btn-good"
                             >
-                              {match.isSubmitting ? '...' : '✅ Good'}
+                              {match.isSubmitting ? '...' : '❤️ Like'}
                             </button>
                             <button 
                               onClick={() => handleRate(match.user?._id, 1)}
                               disabled={match.isSubmitting}
                               className="feedback-btn btn-poor"
                             >
-                              {match.isSubmitting ? '...' : '👎 Poor'}
+                              {match.isSubmitting ? '...' : '⏭️ Skip'}
                             </button>
                           </div>
                         </>
@@ -313,6 +320,13 @@ const MatchRecommendations = () => {
             </div>
           )}
         </div>
+        {selectedContact && (
+          <ContactForm
+            recipientId={selectedContact.id}
+            recipientName={selectedContact.name}
+            onClose={() => setSelectedContact(null)}
+          />
+        )}
       </div>
     </div>
   );

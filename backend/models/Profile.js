@@ -40,6 +40,14 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    contactIdentifier: {
+      type: String,
+      default: "",
+    },
+    role: {
+      type: String,
+      default: "",
+    },
     memberType: {
       type: String,
       default: "",

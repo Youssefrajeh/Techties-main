@@ -34,7 +34,7 @@ const CONTACT_OPTIONS = [
   { value: "LinkedIn", label: "LinkedIn" },
 ];
 
-const MEMBER_TYPE_OPTIONS = [
+const ROLE_OPTIONS = [
   { value: "Developer", label: "Developer" },
   { value: "Designer", label: "Designer" },
   { value: "Product Manager", label: "Product Manager" },
@@ -42,6 +42,11 @@ const MEMBER_TYPE_OPTIONS = [
   { value: "DevOps Engineer", label: "DevOps Engineer" },
   { value: "Student", label: "Student" },
   { value: "Other", label: "Other" },
+];
+
+const MEMBER_TYPE_OPTIONS = [
+  { value: "Free", label: "Free" },
+  { value: "Paid", label: "Paid" },
 ];
 
 const nameRegex = /^[A-Za-z\s'-]+$/;
@@ -69,7 +74,11 @@ function validateProfile(profile) {
   if (!profile.contactMethod) {
     errors.contactMethod = "Please select a contact method.";
   }
+  if (!profile.contactIdentifier?.trim()) {
+    errors.contactIdentifier = "Contact identifier is required.";
+  }
   if (!profile.memberType) errors.memberType = "Please select a member type.";
+  if (!profile.role) errors.role = "Please select your professional role.";
 
 
   if (!profile.skills || profile.skills.length === 0) {
@@ -389,6 +398,16 @@ export default function ProfileEdit() {
                 required
               />
 
+              <Input
+                id="contactIdentifier"
+                label="Contact Identifier (e.g. @handle)"
+                placeholder="e.g. alex_dev#1234"
+                value={profile.contactIdentifier}
+                onChange={(e) => update("contactIdentifier", e.target.value)}
+                error={errors.contactIdentifier}
+                required
+              />
+
               <Select
                 id="memberType"
                 label="Member Type"
@@ -396,6 +415,16 @@ export default function ProfileEdit() {
                 onChange={(e) => update("memberType", e.target.value)}
                 options={MEMBER_TYPE_OPTIONS}
                 error={errors.memberType}
+                required
+              />
+
+              <Select
+                id="role"
+                label="Professional Role"
+                value={profile.role}
+                onChange={(e) => update("role", e.target.value)}
+                options={ROLE_OPTIONS}
+                error={errors.role}
                 required
               />
 

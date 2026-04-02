@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Button from "../components/Button";
+import ContactForm from "../components/ContactForm";
 import "./ViewProfile.css";
 
 export default function ViewProfile() {
@@ -8,7 +10,8 @@ export default function ViewProfile() {
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [showContactForm, setShowContactForm] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -108,9 +111,20 @@ export default function ViewProfile() {
               {profile.nickname && (
                 <p className="view-profile__nickname">@{profile.nickname}</p>
               )}
-              {profile.memberType && (
-                <span className="view-profile__badge">{profile.memberType}</span>
+              {profile.role && (
+                <p className="view-profile__role" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{profile.role}</p>
               )}
+              <div className="view-profile__badges">
+                {profile.memberType && (
+                  <span className="view-profile__badge">{profile.memberType}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="view-profile__actions">
+              <Button variant="primary" onClick={() => setShowContactForm(true)}>
+                ✉️ Send Message
+              </Button>
             </div>
           </div>
 
@@ -134,6 +148,13 @@ export default function ViewProfile() {
                     <span className="view-profile__detail-value">{profile.location}</span>
                   </div>
                 )}
+                <div className="view-profile__detail">
+                  <span className="view-profile__detail-label">💬 Contact Method</span>
+                  <span className="view-profile__detail-value">
+                    {profile.contactMethod || "—"} 
+                    {profile.contactIdentifier && ` (${profile.contactIdentifier})`}
+                  </span>
+                </div>
                 {profile.age && (
                   <div className="view-profile__detail-item">
                     <span className="view-profile__detail-label">🎂 Age</span>
@@ -176,6 +197,13 @@ export default function ViewProfile() {
             )}
           </div>
         </div>
+        {showContactForm && (
+          <ContactForm
+            recipientId={userId}
+            recipientName={profile.firstName + " " + profile.lastName}
+            onClose={() => setShowContactForm(false)}
+          />
+        )}
       </div>
     </div>
   );

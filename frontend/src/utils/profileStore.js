@@ -92,6 +92,8 @@ export const EMPTY_PROFILE = {
   gender: "",
   email: "",
   contactMethod: "",
+  contactIdentifier: "",
+  role: "",
   memberType: "",
   photo: "",
   bio: "",
