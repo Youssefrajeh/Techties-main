@@ -203,6 +203,33 @@ export default function Admin() {
     }
   };
 
+  const handleResetPassword = async (userId) => {
+    const newPassword = prompt("Enter a new temporary password for this user (min 8 chars):");
+    if (!newPassword) return;
+    if (newPassword.length < 8) {
+      alert("Password must be at least 8 characters long.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await api(`/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+        body: JSON.stringify({ newPassword }),
+      });
+      if (res.ok) {
+        alert("Password reset successfully!");
+      } else {
+        const data = await res.json();
+        alert(`Error: ${data.msg || "Failed to reset password"}`);
+      }
+    } catch {
+      alert("Network error resetting password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteUser = async (user) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete ${user.name || user.email}? This action cannot be undone.`

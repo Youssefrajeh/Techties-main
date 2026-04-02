@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Profile = require("../models/Profile");
 const MatchFeedback = require("../models/MatchFeedback");
 const ContactLog = require("../models/ContactLog");
+const bcrypt = require("bcryptjs");
 
 // helper: PM-only access check
 async function requirePM(req, res) {
@@ -178,5 +179,34 @@ exports.getFeedback = async (req, res) => {
   } catch (error) {
     console.error("Admin getFeedback error:", error);
     res.status(500).send("Server error fetching feedback");
+  }
+};
+
+// @desc    Reset user password (PM only)
+// @route   POST /api/admin/users/:id/reset-password
+// @access  Private (PM only)
+exports.resetUserPassword = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ msg: "New password must be at least 8 characters." });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Set new password (the User model's pre-save hook will hash it)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ msg: "Password reset successfully" });
+  } catch (error) {
+    console.error("Admin resetPassword error:", error);
+    res.status(500).send("Server error resetting password");
   }
 };

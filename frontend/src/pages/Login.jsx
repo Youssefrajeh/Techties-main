@@ -239,7 +239,14 @@ export default function Login() {
                 />
                 <label htmlFor="remember">Remember me</label>
               </div>
-              <a href="#" className="login-form__forgot">
+              <a 
+                href="#" 
+                className="login-form__forgot"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("Password reset is managed by the System Administrator.\n\nPlease contact a Product Manager (PM) to request a temporary password.");
+                }}
+              >
                 Forgot password?
               </a>
             </div>

@@ -10,6 +10,7 @@ const {
   deleteUser,
   getProfiles,
   getFeedback,
+  resetUserPassword,
 } = require("../controllers/adminController");
 
 // All admin routes require authentication AND the "pm" role
@@ -19,5 +20,10 @@ router.patch("/users/:id", auth, roleGuard("pm"), updateUser);
 router.delete("/users/:id", auth, roleGuard("pm"), deleteUser);
 router.get("/profiles", auth, roleGuard("pm"), getProfiles);
 router.get("/feedback", auth, roleGuard("pm"), getFeedback);
+
+// @route   POST api/admin/users/:id/reset-password
+// @desc    Reset user password (PM only)
+// @access  Private (PM only)
+router.post("/users/:id/reset-password", auth, roleGuard("pm"), resetUserPassword);
 
 module.exports = router;
