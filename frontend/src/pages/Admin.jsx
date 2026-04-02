@@ -359,44 +359,33 @@ export default function Admin() {
 
         {activeTab === 'Overview' && (
           <section className="admin-section">
-            <h2 className="admin-section-title">Platform overview</h2>
+            <h2 className="admin-section-title">Platform Performance Metrics</h2>
             {stats ? (
               <div className="admin-stats">
+                <div className="admin-stat-card">
+                  <span className="admin-stat-label">Free members</span>
+                  <span className="admin-stat-value">{stats.totalFreeMembers ?? 0}</span>
+                </div>
+
                 <div className="admin-stat-card admin-stat-card--admin">
-                  <span className="admin-stat-label">Admins</span>
-                  <span className="admin-stat-value">{stats.totalAdmins ?? 0}</span>
-                </div>
-
-                <div className="admin-stat-card">
-                  <span className="admin-stat-label">Members</span>
-                  <span className="admin-stat-value">{stats.totalMembers ?? 0}</span>
-                </div>
-
-                <div className="admin-stat-card">
-                  <span className="admin-stat-label">Profiles</span>
-                  <span className="admin-stat-value">{stats.totalProfiles ?? 0}</span>
-                </div>
-
-                <div className="admin-stat-card">
                   <span className="admin-stat-label">Paid members</span>
                   <span className="admin-stat-value">{stats.totalPaidMembers ?? 0}</span>
-                  {stats.totalMembers > 0 && (
-                    <span className="admin-stat-extra">
-                      {Math.round((stats.totalPaidMembers / stats.totalMembers) * 100)}%
-                    </span>
-                  )}
-                </div>
-
-                <div className="admin-stat-card">
-                  <span className="admin-stat-label">Match ratings</span>
-                  <span className="admin-stat-value">{stats.totalFeedback ?? 0}</span>
                 </div>
 
                 <div className="admin-stat-card admin-stat-card--highlight">
-                  <span className="admin-stat-label">Avg satisfaction</span>
-                  <span className="admin-stat-value">
-                    {stats.averageMatchScore > 0 ? `${stats.averageMatchScore} / 5` : '—'}
-                  </span>
+                  <span className="admin-stat-label">Exposed Contact Info</span>
+                  <span className="admin-stat-value">{stats.totalExposedMatches ?? 0}</span>
+                  <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#64748b' }}>
+                    Number of matches where communication info was revealed
+                  </p>
+                </div>
+
+                <div className="admin-stat-card">
+                  <span className="admin-stat-label">Total Matches to Date</span>
+                  <span className="admin-stat-value">{stats.totalMatchesToDate ?? 0}</span>
+                  <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#64748b' }}>
+                    Total user feedbacks/ratings submitted
+                  </p>
                 </div>
               </div>
             ) : (

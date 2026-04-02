@@ -1,6 +1,7 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
 const MatchFeedback = require("../models/MatchFeedback");
+const ContactLog = require("../models/ContactLog");
 const { computeAge } = require("../utils/dateUtils");
 
 // Helper: compute age from a date-of-birth string
@@ -146,9 +147,18 @@ exports.getMatchContact = async (req, res) => {
       return res.status(400).json({ msg: "Cannot fetch your own contact info here." });
     }
     
+    // 5. Log the reveal
+    const newLog = new ContactLog({
+      sender: req.user,
+      recipient: matchedUserId,
+    });
+    await newLog.save();
+
     res.json({
       email: targetProfile.user.email,
-      phone: targetProfile.phone || "No phone provided"
+      phone: targetProfile.phone || "No phone provided",
+      contactMethod: targetProfile.contactMethod,
+      contactIdentifier: targetProfile.contactIdentifier
     });
 
   } catch (error) {

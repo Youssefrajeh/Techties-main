@@ -9,7 +9,6 @@ const profileRoutes = require("./routes/profileRoutes");
 const matchRoutes = require("./routes/matchRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
-const messageRoutes = require("./routes/messageRoutes");
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
@@ -27,7 +26,6 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/feedback", feedbackRoutes);
-app.use("/api/messages", messageRoutes);
 
 const PORT = process.env.PORT || 5000;
 

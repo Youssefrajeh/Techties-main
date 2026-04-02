@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Profile = require("../models/Profile");
 const MatchFeedback = require("../models/MatchFeedback");
+const ContactLog = require("../models/ContactLog");
 
 // helper: PM-only access check
 async function requirePM(req, res) {
@@ -20,39 +21,24 @@ exports.getDashboardStats = async (req, res) => {
     const currentUser = await requirePM(req, res);
     if (!currentUser) return;
 
-    const totalUsers = await User.countDocuments();
-    const totalAdmins = await User.countDocuments({ role: "pm" });
-    const totalMembers = await User.countDocuments({ role: { $ne: "pm" } });
+    // Requirement: How many free members are registered
+    const totalFreeMembers = await User.countDocuments({ isPaid: false, role: { $ne: "admin" } });
+
+    // Requirement: Total number of current paid members
     const totalPaidMembers = await User.countDocuments({ isPaid: true });
-    const totalProfiles = await Profile.countDocuments();
-    const totalFeedback = await MatchFeedback.countDocuments();
 
-    let averageMatchScore = 0;
+    // Requirement: Total number of matches where communication information was exposed
+    const totalExposedMatches = await ContactLog.countDocuments();
 
-    if (totalFeedback > 0) {
-      const result = await MatchFeedback.aggregate([
-        {
-          $group: {
-            _id: null,
-            avgScore: { $avg: "$score" },
-          },
-        },
-      ]);
-
-      if (result.length > 0) {
-        averageMatchScore = Number(result[0].avgScore.toFixed(1));
-      }
-    }
+    // Requirement: Total number of matches (feedbacks) to date
+    const totalMatchesToDate = await MatchFeedback.countDocuments();
 
     res.json({
       metrics: {
-        totalUsers,
-        totalAdmins,
-        totalMembers,
+        totalFreeMembers,
         totalPaidMembers,
-        totalProfiles,
-        totalFeedback,
-        averageMatchScore,
+        totalExposedMatches,
+        totalMatchesToDate,
       },
     });
   } catch (error) {

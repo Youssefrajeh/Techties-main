@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MatchRecommendations.css';
-import ContactForm from './ContactForm';
 
 const ContactRevealer = ({ userId }) => {
   const [contact, setContact] = useState(null);
@@ -29,9 +28,10 @@ const ContactRevealer = ({ userId }) => {
 
   if (contact) {
     return (
-      <div className="revealed-contact">
-        <div>Email: <a href={`mailto:${contact.email}`}>{contact.email}</a></div>
-        <div>Phone: {contact.phone}</div>
+      <div className="revealed-contact" style={{ marginTop: '0.5rem', padding: '0.75rem', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bcf0da' }}>
+        <div style={{ fontWeight: 600, color: '#065f46' }}>External Contact Method:</div>
+        <div style={{ color: '#047857' }}>{contact.contactMethod}: <strong>{contact.contactIdentifier}</strong></div>
+        <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>Email: <a href={`mailto:${contact.email}`} style={{ color: '#059669' }}>{contact.email}</a></div>
       </div>
     );
   }
@@ -56,7 +56,6 @@ const MatchRecommendations = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedContact, setSelectedContact] = useState(null);
 
   // Dummy fetch to represent calling the new API until we have auth wired up in the UI
   useEffect(() => {
@@ -248,16 +247,8 @@ const MatchRecommendations = () => {
                     </div>
 
                     {match.allowContactShare && (
-                      <div className="match-contact" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <strong>Contact Info: </strong>
+                      <div className="match-contact">
                         <ContactRevealer userId={match.user._id} />
-                        <button 
-                          className="button button--sm button--primary"
-                          onClick={() => setSelectedContact({ id: match.user._id, name: match.user.name })}
-                          style={{ padding: '0.2rem 0.6rem', fontSize: '0.8rem' }}
-                        >
-                          ✉️ Send Message
-                        </button>
                       </div>
                     )}
                   </div>
@@ -322,13 +313,6 @@ const MatchRecommendations = () => {
             </div>
           )}
         </div>
-        {selectedContact && (
-          <ContactForm
-            recipientId={selectedContact.id}
-            recipientName={selectedContact.name}
-            onClose={() => setSelectedContact(null)}
-          />
-        )}
       </div>
     </div>
   );

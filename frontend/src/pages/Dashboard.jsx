@@ -158,9 +158,6 @@ export default function Dashboard() {
         </Link>
 
         <div className="dashboard__nav-actions">
-          <Button variant="ghost" size="sm" to="/inbox">
-            📬 Inbox
-          </Button>
           <Button variant="ghost" size="sm" to="/profile/edit">
             Edit Profile
           </Button>
@@ -305,15 +302,6 @@ export default function Dashboard() {
             <div className="dashboard__quick-actions">
               <Button variant="primary" fullWidth to="/matches">
                 🤝 View Match Recommendations
-              </Button>
-
-              <Button
-                variant="outline"
-                fullWidth
-                to="/inbox"
-                style={{ marginTop: "0.5rem" }}
-              >
-                📬 View My Inbox
               </Button>
 
               {session?.role === "pm" && (
