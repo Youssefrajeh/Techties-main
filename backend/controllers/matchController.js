@@ -116,57 +116,6 @@ exports.getMatchRecommendations = async (req, res) => {
   }
 };
 
-// @desc    Get contact details for a matched user
-// @route   GET /api/matches/contact/:matchedUserId
-// @access  Private (Paid Members only)
-exports.getMatchContact = async (req, res) => {
-  try {
-    const { matchedUserId } = req.params;
-
-    // 1. Verify current user is paid
-    const currentUser = await User.findById(req.user);
-    if (!currentUser || !currentUser.isPaid) {
-      return res.status(403).json({ msg: "Paid membership required." });
-    }
-
-    // 2. Get profiles
-    const currentProfile = await Profile.findOne({ user: req.user });
-    const targetProfile = await Profile.findOne({ user: matchedUserId }).populate("user", ["email", "name"]);
-
-    if (!currentProfile || !targetProfile) {
-      return res.status(404).json({ msg: "Profile not found." });
-    }
-
-    // 3. Check target user consent
-    if (!targetProfile.allowContactShare) {
-      return res.status(403).json({ msg: "This user has not shared their contact information." });
-    }
-
-    // 4. Verify user is not fetching their own contact info
-    if (String(req.user) === String(matchedUserId)) {
-      return res.status(400).json({ msg: "Cannot fetch your own contact info here." });
-    }
-    
-    // 5. Log the reveal
-    const newLog = new ContactLog({
-      sender: req.user,
-      recipient: matchedUserId,
-    });
-    await newLog.save();
-
-    res.json({
-      email: targetProfile.user.email,
-      phone: targetProfile.phone || "No phone provided",
-      contactMethod: targetProfile.contactMethod,
-      contactIdentifier: targetProfile.contactIdentifier
-    });
-
-  } catch (error) {
-    console.error("Contact retrieval error:", error);
-    res.status(500).send("Server error");
-  }
-};
-
 // @desc    Get users who have showed interest in the current user
 // @route   GET /api/matches/received-interest
 // @access  Private
@@ -178,27 +127,13 @@ exports.getReceivedInterest = async (req, res) => {
       .sort({ date: -1 })
       .limit(20);
 
-    // 2. Find people who revealed the user's contact info
-    const reveals = await ContactLog.find({ recipient: req.user })
-      .populate("sender", ["name", "email"])
-      .sort({ date: -1 })
-      .limit(20);
-
-    // 3. Combine and format
-    const combined = [
-      ...likes.map(l => ({
-        type: 'like',
-        userId: l.user._id,
-        userName: l.user.name,
-        date: l.date
-      })),
-      ...reveals.map(r => ({
-        type: 'reveal',
-        userId: r.sender._id,
-        userName: r.sender.name,
-        date: r.date
-      }))
-    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // 2. Format
+    const combined = likes.map(l => ({
+      type: 'like',
+      userId: l.user._id,
+      userName: l.user.name,
+      date: l.date
+    })).sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.json(combined);
 
