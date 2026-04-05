@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import ViewProfile from './pages/ViewProfile';
 import MatchRecommendations from './components/MatchRecommendations';
+import SecurityHandler from './components/SecurityHandler';
 import { isAuthenticated } from './utils/auth';
 
 /* ── Protected Route wrapper ──────────────────────── */
@@ -21,6 +22,7 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <SecurityHandler />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
