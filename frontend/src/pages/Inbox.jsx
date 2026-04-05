@@ -24,19 +24,29 @@ export default function Inbox() {
     try {
       const endpoint = tab === 'received' ? '/api/messages/inbox' : '/api/messages/sent';
       const res = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(10000)
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
       });
       
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}: ${res.statusText}`);
+      }
+
       const data = await res.json();
       
-      if (res.ok && Array.isArray(data)) {
+      if (Array.isArray(data)) {
         setMessages(data);
       } else {
         setMessages([]);
       }
     } catch (err) {
-      console.error('Fetch messages error:', err);
+      console.error('Fetch messages error details:', err);
+      // Show more descriptive error for debugging
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+         console.warn('Network error: Could not reach the API. Check Vercel status.');
+      }
       setMessages([]);
     } finally {
       setLoading(false);
