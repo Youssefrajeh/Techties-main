@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getSession } from '../utils/auth';
 import './Inbox.css';
@@ -9,7 +9,9 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const navigate = useNavigate();
-  const session = getSession();
+  
+  // Memoize session to prevent it from being a "new object" on every render
+  const session = useMemo(() => getSession(), []);
 
   const fetchMessages = async (tab) => {
     setLoading(true);
