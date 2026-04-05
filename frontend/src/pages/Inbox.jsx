@@ -17,7 +17,6 @@ export default function Inbox() {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      console.error('No token found');
       setLoading(false);
       return;
     }
@@ -25,7 +24,8 @@ export default function Inbox() {
     try {
       const endpoint = tab === 'received' ? '/api/messages/inbox' : '/api/messages/sent';
       const res = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10000)
       });
       
       const data = await res.json();
@@ -33,15 +33,13 @@ export default function Inbox() {
       if (res.ok && Array.isArray(data)) {
         setMessages(data);
       } else {
-        console.warn('Invalid message data received:', data);
         setMessages([]);
       }
     } catch (err) {
       console.error('Fetch messages error:', err);
       setMessages([]);
     } finally {
-      // Small delay for smooth transition
-      setTimeout(() => setLoading(false), 300);
+      setLoading(false);
     }
   };
 
