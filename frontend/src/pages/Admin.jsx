@@ -36,8 +36,10 @@ export default function Admin() {
   const [upgradeRequests, setUpgradeRequests] = useState([]);
 
   const [editingUser, setEditingUser] = useState(null);
+  const [editingProfileId, setEditingProfileId] = useState(null);
   const [editRole, setEditRole] = useState('member');
   const [editPaid, setEditPaid] = useState(false);
+  const [editAllowContactShare, setEditAllowContactShare] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [resetModalUser, setResetModalUser] = useState(null); // { id, name }
@@ -317,6 +319,42 @@ export default function Admin() {
         loadStats();
       } else {
         setBanner({ type: 'error', text: data.msg || 'Action failed.' });
+      }
+    } catch {
+      setBanner({ type: 'error', text: 'Request failed.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEditProfile = (p) => {
+    setEditingProfileId(p._id);
+    setEditAllowContactShare(!!p.allowContactShare);
+    setBanner({ type: '', text: '' });
+  };
+
+  const cancelEditProfile = () => {
+    setEditingProfileId(null);
+  };
+
+  const handleUpdateProfile = async (profileId) => {
+    setSaving(true);
+    setBanner({ type: '', text: '' });
+
+    try {
+      const res = await api(`/admin/profiles/${profileId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ allowContactShare: editAllowContactShare }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setProfiles((prev) => prev.map((p) => (p._id === profileId ? data : p)));
+        setEditingProfileId(null);
+        setBanner({ type: 'success', text: 'Profile updated successfully.' });
+      } else {
+        setBanner({ type: 'error', text: data.msg || 'Update failed.' });
       }
     } catch {
       setBanner({ type: 'error', text: 'Request failed.' });
@@ -651,6 +689,8 @@ export default function Admin() {
                       <th>Email</th>
                       <th>Bio</th>
                       <th>Skills</th>
+                      <th>Contact Sharing</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -663,6 +703,53 @@ export default function Admin() {
                           {(p.bio || '').length > 60 ? '…' : ''}
                         </td>
                         <td>{(p.skills || []).join(', ') || '—'}</td>
+                        <td>
+                          {editingProfileId === p._id ? (
+                            <label className="admin-check">
+                              <input
+                                type="checkbox"
+                                checked={editAllowContactShare}
+                                onChange={(e) => setEditAllowContactShare(e.target.checked)}
+                                disabled={saving}
+                              />
+                              Enabled
+                            </label>
+                          ) : (
+                            p.allowContactShare ? 'Enabled' : 'Disabled'
+                          )}
+                        </td>
+                        <td>
+                          <div className="admin-actions">
+                            {editingProfileId === p._id ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn--sm"
+                                  onClick={() => handleUpdateProfile(p._id)}
+                                  disabled={saving}
+                                >
+                                  {saving ? 'Saving…' : 'Save'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn--sm admin-btn--outline"
+                                  onClick={cancelEditProfile}
+                                  disabled={saving}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--sm admin-btn--outline"
+                                onClick={() => startEditProfile(p)}
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

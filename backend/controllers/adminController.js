@@ -162,6 +162,38 @@ exports.getProfiles = async (req, res) => {
   }
 };
 
+// @desc    Update profile fields (PM only)
+// @route   PATCH /api/admin/profiles/:id
+// @access  Private (PM only)
+exports.updateProfile = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const { allowContactShare } = req.body;
+    const updates = {};
+
+    if (typeof allowContactShare === "boolean") {
+      updates.allowContactShare = allowContactShare;
+    }
+
+    const profile = await Profile.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true }
+    ).populate("user", "name email role");
+
+    if (!profile) {
+      return res.status(404).json({ msg: "Profile not found" });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.error("Admin updateProfile error:", error);
+    res.status(500).send("Server error updating profile");
+  }
+};
+
 // @desc    List all match feedback (PM only)
 // @route   GET /api/admin/feedback
 // @access  Private (PM only)

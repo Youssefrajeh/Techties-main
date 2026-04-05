@@ -9,6 +9,7 @@ const {
   updateUser,
   deleteUser,
   getProfiles,
+  updateProfile,
   getFeedback,
   resetUserPassword,
   getUpgradeRequests,
@@ -21,6 +22,7 @@ router.get("/users", auth, roleGuard("pm"), getUsers);
 router.patch("/users/:id", auth, roleGuard("pm"), updateUser);
 router.delete("/users/:id", auth, roleGuard("pm"), deleteUser);
 router.get("/profiles", auth, roleGuard("pm"), getProfiles);
+router.patch("/profiles/:id", auth, roleGuard("pm"), updateProfile);
 router.get("/feedback", auth, roleGuard("pm"), getFeedback);
 router.get("/upgrade-requests", auth, roleGuard("pm"), getUpgradeRequests);
 router.patch("/upgrade-requests/:id", auth, roleGuard("pm"), handleUpgradeRequest);
