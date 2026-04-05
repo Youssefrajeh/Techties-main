@@ -13,20 +13,35 @@ export default function Inbox() {
 
   const fetchMessages = async (tab) => {
     setLoading(true);
+    setMessages([]);
     const token = localStorage.getItem('token');
+    
+    if (!token) {
+      console.error('No token found');
+      setLoading(false);
+      return;
+    }
+
     try {
       const endpoint = tab === 'received' ? '/api/messages/inbox' : '/api/messages/sent';
       const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       const data = await res.json();
-      if (res.ok) {
+      
+      if (res.ok && Array.isArray(data)) {
         setMessages(data);
+      } else {
+        console.warn('Invalid message data received:', data);
+        setMessages([]);
       }
     } catch (err) {
       console.error('Fetch messages error:', err);
+      setMessages([]);
     } finally {
-      setLoading(false);
+      // Small delay for smooth transition
+      setTimeout(() => setLoading(false), 300);
     }
   };
 
