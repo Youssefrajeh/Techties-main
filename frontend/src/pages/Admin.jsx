@@ -33,6 +33,7 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [feedback, setFeedback] = useState([]);
+  const [upgradeRequests, setUpgradeRequests] = useState([]);
 
   const [editingUser, setEditingUser] = useState(null);
   const [editRole, setEditRole] = useState('member');
@@ -133,13 +134,30 @@ export default function Admin() {
     }
   };
 
+  const loadUpgradeRequests = async () => {
+    setTabLoading(true);
+    try {
+      const res = await api('/admin/upgrade-requests');
+      const data = await res.json();
+      if (res.ok) {
+        setUpgradeRequests(Array.isArray(data) ? data : []);
+      } else {
+        setUpgradeRequests([]);
+      }
+    } catch {
+      setUpgradeRequests([]);
+    } finally {
+      setTabLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (loading || error) return;
 
-    if (activeTab === 'Overview') loadStats();
     if (activeTab === 'Users') loadUsers();
     if (activeTab === 'Profiles') loadProfiles();
     if (activeTab === 'Feedback') loadFeedback();
+    if (activeTab === 'Upgrade Requests') loadUpgradeRequests();
   }, [loading, error, activeTab]);
 
   const refreshActiveTab = async () => {
@@ -164,6 +182,11 @@ export default function Admin() {
     if (activeTab === 'Feedback') {
       await loadFeedback();
       setBanner({ type: 'success', text: 'Feedback refreshed.' });
+    }
+
+    if (activeTab === 'Upgrade Requests') {
+      await loadUpgradeRequests();
+      setBanner({ type: 'success', text: 'Requests refreshed.' });
     }
   };
 
@@ -274,6 +297,34 @@ export default function Admin() {
     }
   };
 
+  const handleUpgradeAction = async (requestId, status) => {
+    setSaving(true);
+    setBanner({ type: '', text: '' });
+    try {
+      const res = await api(`/admin/upgrade-requests/${requestId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUpgradeRequests((prev) =>
+          prev.map((r) => (r._id === requestId ? { ...r, status } : r))
+        );
+        setBanner({
+          type: 'success',
+          text: `Request ${status === 'approved' ? 'approved' : 'rejected'} successfully.`
+        });
+        loadStats();
+      } else {
+        setBanner({ type: 'error', text: data.msg || 'Action failed.' });
+      }
+    } catch {
+      setBanner({ type: 'error', text: 'Request failed.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       const matchesSearch =
@@ -299,6 +350,7 @@ export default function Admin() {
     Users: users.length,
     Profiles: profiles.length,
     Feedback: feedback.length,
+    'Upgrade Requests': upgradeRequests.filter(r => r.status === 'pending').length,
   };
 
   if (loading) {
@@ -352,7 +404,7 @@ export default function Admin() {
       </header>
 
       <div className="admin-tabs">
-        {['Overview', 'Users', 'Profiles', 'Feedback'].map((tab) => (
+        {['Overview', 'Users', 'Profiles', 'Feedback', 'Upgrade Requests'].map((tab) => (
           <button
             key={tab}
             type="button"
@@ -662,6 +714,70 @@ export default function Admin() {
 
             {!tabLoading && feedback.length === 0 && (
               <p className="admin-muted">No feedback yet.</p>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'Upgrade Requests' && (
+          <section className="admin-section">
+            <h2 className="admin-section-title">Upgrade Requests</h2>
+            {tabLoading ? (
+              <p className="admin-muted">Loading requests…</p>
+            ) : (
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                      <th>Requested At</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upgradeRequests.map((r) => (
+                      <tr key={r._id}>
+                        <td>{r.user?.name || '—'}</td>
+                        <td>{r.user?.email || '—'}</td>
+                        <td>
+                          <span className={`admin-status-badge admin-status-badge--${r.status}`}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td>{new Date(r.createdAt).toLocaleString()}</td>
+                        <td>
+                          {r.status === 'pending' ? (
+                            <div className="admin-actions">
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                onClick={() => handleUpgradeAction(r._id, 'approved')}
+                                disabled={saving}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--sm admin-btn--danger"
+                                onClick={() => handleUpgradeAction(r._id, 'rejected')}
+                                disabled={saving}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="admin-muted">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {!tabLoading && upgradeRequests.length === 0 && (
+              <p className="admin-muted">No upgrade requests found.</p>
             )}
           </section>
         )}

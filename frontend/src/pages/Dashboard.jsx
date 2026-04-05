@@ -19,6 +19,9 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [interests, setInterests] = useState([]);
   const [interestsLoading, setInterestsLoading] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [upgradeStatus, setUpgradeStatus] = useState(null); // 'pending', 'none'
+  const [upgradeMessage, setUpgradeMessage] = useState("");
 
   const fromProfileSetup = location.state?.fromProfileSetup === true;
 
@@ -38,6 +41,48 @@ export default function Dashboard() {
       console.error('Failed to load interests:', err);
     } finally {
       setInterestsLoading(false);
+    }
+  };
+
+  const checkUpgradeStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch('/api/auth/upgrade-status', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUpgradeStatus(data.status);
+      }
+    } catch (err) {
+      console.error('Failed to check upgrade status:', err);
+    }
+  };
+
+  const handleRequestUpgrade = async () => {
+    setUpgradeLoading(true);
+    setUpgradeMessage("");
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/auth/request-upgrade", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUpgradeStatus("pending");
+        setUpgradeMessage(data.msg);
+      } else {
+        setUpgradeMessage(data.msg || "Failed to submit request.");
+      }
+    } catch (err) {
+      setUpgradeMessage("Network error. Please try again.");
+    } finally {
+      setUpgradeLoading(false);
     }
   };
 
@@ -89,6 +134,7 @@ export default function Dashboard() {
             saveProfile(sessionEmail, profileData);
             setProfile(profileData);
             await loadInterests();
+            await checkUpgradeStatus();
             return;
           }
         }
@@ -205,6 +251,12 @@ export default function Dashboard() {
 {location.state?.adminDenied && (
   <div className="dashboard__admin-denied-banner" role="alert">
     Only admin accounts can access the Admin page. Log in with an admin account to continue.
+  </div>
+)}
+
+{upgradeMessage && (
+  <div className={`dashboard__${upgradeStatus === "pending" ? "success" : "error"}-banner`} role="alert">
+    {upgradeMessage}
   </div>
 )}
 
@@ -374,6 +426,34 @@ export default function Dashboard() {
               <Button variant="primary" fullWidth to="/matches">
                 🤝 View Match Recommendations
               </Button>
+
+              {!session?.isPaid && upgradeStatus !== 'pending' && (
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={handleRequestUpgrade}
+                  disabled={upgradeLoading}
+                  style={{ marginTop: "0.5rem", background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', border: 'none' }}
+                >
+                  {upgradeLoading ? "Submitting..." : "🚀 Upgrade to Premium"}
+                </Button>
+              )}
+
+              {!session?.isPaid && upgradeStatus === 'pending' && (
+                <div style={{ 
+                  marginTop: '0.5rem', 
+                  padding: '0.75rem', 
+                  backgroundColor: '#f0fdf4', 
+                  color: '#166534', 
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                  border: '1px solid #bbf7d0',
+                  fontWeight: 500
+                }}>
+                  ⏳ Upgrade Request Pending
+                </div>
+              )}
 
               {session?.role === "pm" && (
                 <Button

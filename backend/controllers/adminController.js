@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Profile = require("../models/Profile");
 const MatchFeedback = require("../models/MatchFeedback");
 const ContactLog = require("../models/ContactLog");
+const UpgradeRequest = require("../models/UpgradeRequest");
 const bcrypt = require("bcryptjs");
 
 // helper: PM-only access check
@@ -208,5 +209,60 @@ exports.resetUserPassword = async (req, res) => {
   } catch (error) {
     console.error("Admin resetPassword error:", error);
     res.status(500).send("Server error resetting password");
+  }
+};
+
+// @desc    List all upgrade requests (PM only)
+// @route   GET /api/admin/upgrade-requests
+// @access  Private (PM only)
+exports.getUpgradeRequests = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const requests = await UpgradeRequest.find()
+      .populate("user", "name email isPaid")
+      .sort({ createdAt: -1 });
+
+    res.json(requests);
+  } catch (error) {
+    console.error("Admin getUpgradeRequests error:", error);
+    res.status(500).send("Server error fetching upgrade requests");
+  }
+};
+
+// @desc    Approve or reject upgrade request (PM only)
+// @route   PATCH /api/admin/upgrade-requests/:id
+// @access  Private (PM only)
+exports.handleUpgradeRequest = async (req, res) => {
+  try {
+    const currentUser = await requirePM(req, res);
+    if (!currentUser) return;
+
+    const { status } = req.body;
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ msg: "Invalid status value" });
+    }
+
+    const upgradeRequest = await UpgradeRequest.findById(req.params.id);
+    if (!upgradeRequest) {
+      return res.status(404).json({ msg: "Upgrade request not found" });
+    }
+
+    if (upgradeRequest.status !== "pending") {
+      return res.status(400).json({ msg: "Request has already been processed." });
+    }
+
+    upgradeRequest.status = status;
+    await upgradeRequest.save();
+
+    if (status === "approved") {
+      await User.findByIdAndUpdate(upgradeRequest.user, { isPaid: true });
+    }
+
+    res.json({ msg: `Request ${status} successfully.`, request: upgradeRequest });
+  } catch (error) {
+    console.error("Admin handleUpgradeRequest error:", error);
+    res.status(500).send("Server error handling upgrade request");
   }
 };

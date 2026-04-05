@@ -11,6 +11,8 @@ const {
   getProfiles,
   getFeedback,
   resetUserPassword,
+  getUpgradeRequests,
+  handleUpgradeRequest,
 } = require("../controllers/adminController");
 
 // All admin routes require authentication AND the "pm" role
@@ -20,6 +22,8 @@ router.patch("/users/:id", auth, roleGuard("pm"), updateUser);
 router.delete("/users/:id", auth, roleGuard("pm"), deleteUser);
 router.get("/profiles", auth, roleGuard("pm"), getProfiles);
 router.get("/feedback", auth, roleGuard("pm"), getFeedback);
+router.get("/upgrade-requests", auth, roleGuard("pm"), getUpgradeRequests);
+router.patch("/upgrade-requests/:id", auth, roleGuard("pm"), handleUpgradeRequest);
 
 // @route   POST api/admin/users/:id/reset-password
 // @desc    Reset user password (PM only)
