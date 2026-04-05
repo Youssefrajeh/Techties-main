@@ -10,14 +10,11 @@ export default function ViewProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [revealedContact, setRevealedContact] = useState(null);
-  const [revealLoading, setRevealLoading] = useState(false);
-  const [revealError, setRevealError] = useState("");
+  const [sendSuccess, setSendSuccess] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageSubject, setMessageSubject] = useState("");
   const [messageContent, setMessageContent] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [sendSuccess, setSendSuccess] = useState(false);
 
   useEffect(() => {
     // Reset success message when modal opens/closes
@@ -87,27 +84,6 @@ export default function ViewProfile() {
 
     fetchProfile();
   }, [userId]);
-
-  const handleRevealContact = async () => {
-    setRevealLoading(true);
-    setRevealError("");
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/matches/contact/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.msg || "Failed to reveal contact.");
-      }
-      const data = await res.json();
-      setRevealedContact(data);
-    } catch (err) {
-      setRevealError(err.message);
-    } finally {
-      setRevealLoading(false);
-    }
-  };
 
   // Build display name from profile fields
   const displayName = profile
@@ -188,51 +164,14 @@ export default function ViewProfile() {
               </div>
             </div>
 
-            <div className="view-profile__actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="view-profile__actions">
               <Button 
-                variant="secondary" 
+                variant="primary" 
                 onClick={() => setShowMessageModal(true)}
-                style={{ backgroundColor: '#2563eb', color: 'white', border: 'none' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 ✉️ Send Message
               </Button>
-
-              {profile && profile.allowContactShare ? (
-                <>
-                  {!revealedContact ? (
-                    <Button 
-                      variant="primary" 
-                      onClick={handleRevealContact}
-                      disabled={revealLoading}
-                    >
-                      {revealLoading ? "Revealing..." : "👁️ Reveal Contact Info"}
-                    </Button>
-                  ) : (
-                    <div className="revealed-contact-box" style={{ 
-                      padding: "1rem", 
-                      backgroundColor: "#f0fdf4", 
-                      borderRadius: "12px", 
-                      border: "1px solid #bcf0da",
-                      boxShadow: "0 4px 6px rgba(0,0,0,0.05)"
-                    }}>
-                      <div style={{ fontWeight: 700, color: "#065f46", marginBottom: "0.5rem" }}>
-                        ✅ Contact Method: {revealedContact.contactMethod || "External"}
-                      </div>
-                      <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#047857", marginBottom: "0.5rem" }}>
-                        {revealedContact.contactIdentifier}
-                      </div>
-                      <div style={{ fontSize: "0.9rem", color: "#059669" }}>
-                        Email: <a href={`mailto:${revealedContact.email}`} style={{ color: "#059669", fontWeight: 600 }}>{revealedContact.email}</a>
-                      </div>
-                    </div>
-                  )}
-                  {revealError && <p style={{ color: "red", fontSize: "0.85rem", marginTop: "0.5rem" }}>{revealError}</p>}
-                </>
-              ) : (
-                <p className="view-profile__muted" style={{ fontSize: "0.9rem", color: "#64748b", fontStyle: "italic" }}>
-                  This user has not enabled contact sharing.
-                </p>
-              )}
             </div>
 
             {/* Send Message Modal */}
