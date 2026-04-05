@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeStatus, setUpgradeStatus] = useState(null); // 'pending', 'none'
   const [upgradeMessage, setUpgradeMessage] = useState("");
+  const [isPaidUser, setIsPaidUser] = useState(session?.isPaid || false);
 
   const fromProfileSetup = location.state?.fromProfileSetup === true;
 
@@ -55,6 +56,7 @@ export default function Dashboard() {
       if (res.ok) {
         const data = await res.json();
         setUpgradeStatus(data.status);
+        setIsPaidUser(data.isPaid);
       }
     } catch (err) {
       console.error('Failed to check upgrade status:', err);
@@ -427,7 +429,7 @@ export default function Dashboard() {
                 🤝 View Match Recommendations
               </Button>
 
-              {!session?.isPaid && upgradeStatus !== 'pending' && (
+              {!isPaidUser && upgradeStatus !== 'pending' && (
                 <Button
                   variant="primary"
                   fullWidth
@@ -439,7 +441,7 @@ export default function Dashboard() {
                 </Button>
               )}
 
-              {!session?.isPaid && upgradeStatus === 'pending' && (
+              {!isPaidUser && upgradeStatus === 'pending' && (
                 <div style={{ 
                   marginTop: '0.5rem', 
                   padding: '0.75rem', 

@@ -139,11 +139,15 @@ exports.requestUpgrade = async (req, res) => {
 
 exports.getUpgradeStatus = async (req, res) => {
   try {
+    const user = await User.findById(req.user);
     const request = await UpgradeRequest.findOne({
       user: req.user,
       status: "pending",
     });
-    res.json({ status: request ? "pending" : "none" });
+    res.json({ 
+      status: request ? "pending" : "none",
+      isPaid: user ? user.isPaid : false
+    });
   } catch (err) {
     console.error("GetUpgradeStatus error:", err);
     res.status(500).json({ message: err.message || "Server error" });
