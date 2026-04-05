@@ -112,7 +112,7 @@ export default function Login() {
           role: user.role,
           loggedInAt: Date.now(),
         }));
-        navigate(user.role === 'pm' ? '/admin' : '/dashboard');
+        navigate(user.role === "admin" ? "/admin" : "/dashboard");
       } else {
         setErrors({
           form: data.message || "Invalid email or password.",
@@ -244,7 +244,7 @@ export default function Login() {
                 className="login-form__forgot"
                 onClick={(e) => {
                   e.preventDefault();
-                  alert("Password reset is managed by the System Administrator.\n\nPlease contact a Product Manager (PM) to request a temporary password.");
+                  alert("Password reset is managed by the System Administrator.\n\nPlease contact an Admin to request a temporary password.");
                 }}
               >
                 Forgot password?

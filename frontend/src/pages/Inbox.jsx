@@ -1,97 +1,119 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Button from '../components/Button';
-import ContactForm from '../components/ContactForm';
+import { getSession } from '../utils/auth';
 import './Inbox.css';
 
-const Inbox = () => {
-  const navigate = useNavigate();
+export default function Inbox() {
+  const [activeTab, setActiveTab] = useState('received');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedReply, setSelectedReply] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const navigate = useNavigate();
+  const session = getSession();
+
+  const fetchMessages = async (tab) => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const endpoint = tab === 'received' ? '/api/messages/inbox' : '/api/messages/sent';
+      const res = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessages(data);
+      }
+    } catch (err) {
+      console.error('Fetch messages error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    if (!session) {
+      navigate('/login');
+      return;
+    }
+    fetchMessages(activeTab);
+  }, [activeTab, session, navigate]);
+
+  const handleOpenMessage = async (msg) => {
+    setSelectedMessage(msg);
+    if (activeTab === 'received' && !msg.isRead) {
+      // Mark as read
+      const token = localStorage.getItem('token');
       try {
-        const res = await fetch('/api/messages/my-messages', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+        await fetch(`/api/messages/read/${msg._id}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` }
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Failed to fetch messages');
-        setMessages(data);
+        // Update local state
+        setMessages(prev => prev.map(m => m._id === msg._id ? { ...m, isRead: true } : m));
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        console.error('Mark read error:', err);
       }
-    };
+    }
+  };
 
-    fetchMessages();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="inbox-page">
-        <div className="inbox-container loading">
-          <div className="spinner"></div>
-          <p>Loading your messages...</p>
-        </div>
-      </div>
-    );
-  }
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return date.toLocaleDateString([], { weekday: 'long' });
+    return date.toLocaleDateString();
+  };
 
   return (
-    <div className="inbox-page">
-      <nav className="dashboard__nav">
-        <Link to="/" className="dashboard__nav-brand">TechTies</Link>
-        <div className="dashboard__nav-actions">
-          <Button variant="ghost" size="sm" to="/dashboard">Dashboard</Button>
-          <Button variant="secondary" size="sm" to="/matches">Matches</Button>
-        </div>
-      </nav>
-
-      <div className="inbox-container">
+    <div className="inbox-container">
+      <div className="inbox-card">
         <header className="inbox-header">
-          <h1>My Inbox</h1>
-          <p>You have {messages.length} messages</p>
+          <h1 className="inbox-title">Messages</h1>
+          <Link to="/dashboard" className="admin-btn admin-btn--sm admin-btn--outline">Back to Dashboard</Link>
         </header>
 
-        {error && <div className="inbox-error">{error}</div>}
+        <nav className="inbox-tabs">
+          <button 
+            className={`inbox-tab ${activeTab === 'received' ? 'active' : ''}`}
+            onClick={() => setActiveTab('received')}
+          >
+            Received
+          </button>
+          <button 
+            className={`inbox-tab ${activeTab === 'sent' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sent')}
+          >
+            Sent
+          </button>
+        </nav>
 
-        <div className="messages-list">
-          {messages.length === 0 ? (
-            <div className="no-messages">
-              <p>Your inbox is empty. Start connecting with matches!</p>
-              <Button variant="primary" to="/matches">Find Matches</Button>
+        <div className="message-list">
+          {loading ? (
+            <div className="empty-inbox">Loading messages...</div>
+          ) : messages.length === 0 ? (
+            <div className="empty-inbox">
+              <span className="empty-icon">📂</span>
+              <p>No messages in your {activeTab} folder.</p>
             </div>
           ) : (
             messages.map((msg) => (
-              <div key={msg._id} className="message-item">
-                <div className="message-item__header">
-                  <div className="message-item__sender">
-                    <span className="sender-label">From:</span> {msg.sender?.name || 'Unknown User'}
-                  </div>
-                  <div className="message-item__date">
-                    {new Date(msg.createdAt).toLocaleDateString()} at {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+              <div 
+                key={msg._id} 
+                className={`message-item ${activeTab === 'received' && !msg.isRead ? 'unread' : ''}`}
+                onClick={() => handleOpenMessage(msg)}
+              >
+                <div className="sender-name">
+                  {activeTab === 'received' ? msg.sender?.name || 'User' : `To: ${msg.recipient?.name || 'User'}`}
                 </div>
-                <div className="message-item__subject">
-                  <strong>Subject:</strong> {msg.subject}
+                <div className="message-subject">
+                  {msg.subject}
                 </div>
-                <div className="message-item__content">
-                  {msg.content}
-                </div>
-                <div className="message-item__actions">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setSelectedReply({ id: msg.sender?._id, name: msg.sender?.name, subject: `Re: ${msg.subject}` })}
-                  >
-                    Reply
-                  </Button>
+                <div className="message-date">
+                  {formatDate(msg.createdAt)}
                 </div>
               </div>
             ))
@@ -99,15 +121,34 @@ const Inbox = () => {
         </div>
       </div>
 
-      {selectedReply && (
-        <ContactForm
-          recipientId={selectedReply.id}
-          recipientName={selectedReply.name}
-          onClose={() => setSelectedReply(null)}
-        />
+      {selectedMessage && (
+        <div className="message-modal-overlay" onClick={() => setSelectedMessage(null)}>
+          <div className="message-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-subject">{selectedMessage.subject}</h2>
+              <div className="modal-meta">
+                {activeTab === 'received' 
+                  ? `From: ${selectedMessage.sender?.name} (${selectedMessage.sender?.email})`
+                  : `To: ${selectedMessage.recipient?.name} (${selectedMessage.recipient?.email})`
+                }
+                <br />
+                {new Date(selectedMessage.createdAt).toLocaleString()}
+              </div>
+            </div>
+            <div className="modal-body">
+              {selectedMessage.content}
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="admin-btn admin-btn--primary" 
+                onClick={() => setSelectedMessage(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
-};
-
-export default Inbox;
+}

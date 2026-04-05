@@ -29,18 +29,59 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// @desc    Get all received messages for the current user
+// @desc    Get all received messages for the current user (Inbox)
 // @route   GET /api/messages/my-messages
 // @access  Private
-exports.getMyMessages = async (req, res) => {
+exports.getReceivedMessages = async (req, res) => {
   try {
-    const messages = await Message.find({ recipient: req.user.id })
+    const messages = await Message.find({ recipient: req.user })
       .populate("sender", "name email")
       .sort("-createdAt");
 
     res.json(messages);
   } catch (err) {
     console.error("Get messages error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
+// @desc    Get all sent messages for the current user
+// @route   GET /api/messages/sent
+// @access  Private
+exports.getSentMessages = async (req, res) => {
+  try {
+    const messages = await Message.find({ sender: req.user })
+      .populate("recipient", "name email")
+      .sort("-createdAt");
+
+    res.json(messages);
+  } catch (err) {
+    console.error("Get sent messages error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
+// @desc    Mark a message as read
+// @route   PATCH /api/messages/read/:id
+// @access  Private
+exports.markAsRead = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    // Only recipient can mark as read
+    if (message.recipient.toString() !== req.user.toString()) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    message.isRead = true;
+    await message.save();
+
+    res.json({ message: "Message marked as read", data: message });
+  } catch (err) {
+    console.error("Mark read error:", err);
     res.status(500).json({ message: err.message || "Server error" });
   }
 };

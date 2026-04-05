@@ -198,7 +198,7 @@ const MatchRecommendations = () => {
 
       <div className="dashboard__container">
         <div className="match-recommendations-wrapper">
-          <div className="pm-dashboard-header" style={{ marginBottom: "2rem" }}>
+          <div className="admin-dashboard-header" style={{ marginBottom: "2rem" }}>
             <h2>Your Match Recommendations</h2>
             <p className="subtitle">Based on your skills and preferences</p>
           </div>

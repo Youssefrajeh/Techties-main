@@ -7,6 +7,7 @@ import ProfileEdit from './pages/ProfileEdit';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import ViewProfile from './pages/ViewProfile';
+import Inbox from './pages/Inbox';
 import MatchRecommendations from './components/MatchRecommendations';
 import SecurityHandler from './components/SecurityHandler';
 import { isAuthenticated } from './utils/auth';
@@ -64,6 +65,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ViewProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <Inbox />
             </ProtectedRoute>
           }
         />

@@ -471,6 +471,15 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 fullWidth
+                to="/inbox"
+                style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}
+              >
+                ✉️ Inbox
+              </Button>
+
+              <Button
+                variant="outline"
+                fullWidth
                 to="/profile/edit"
                 style={{ marginTop: "0.5rem" }}
               >

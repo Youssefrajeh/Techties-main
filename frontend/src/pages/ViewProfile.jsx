@@ -13,6 +13,51 @@ export default function ViewProfile() {
   const [revealedContact, setRevealedContact] = useState(null);
   const [revealLoading, setRevealLoading] = useState(false);
   const [revealError, setRevealError] = useState("");
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageContent, setMessageContent] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState(false);
+
+  useEffect(() => {
+    // Reset success message when modal opens/closes
+    if (!showMessageModal) {
+      setSendSuccess(false);
+      setMessageSubject("");
+      setMessageContent("");
+    }
+  }, [showMessageModal]);
+
+  const handleSendMessage = async () => {
+    setSendingMessage(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/messages/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          recipientId: profile.user._id,
+          subject: messageSubject,
+          content: messageContent,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      setSendSuccess(true);
+      setTimeout(() => setShowMessageModal(false), 2000);
+    } catch (err) {
+      console.error("Send message error:", err);
+      alert("Error sending message. Please try again.");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -143,7 +188,15 @@ export default function ViewProfile() {
               </div>
             </div>
 
-            <div className="view-profile__actions">
+            <div className="view-profile__actions" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <Button 
+                variant="secondary" 
+                onClick={() => setShowMessageModal(true)}
+                style={{ backgroundColor: '#2563eb', color: 'white', border: 'none' }}
+              >
+                ✉️ Send Message
+              </Button>
+
               {profile && profile.allowContactShare ? (
                 <>
                   {!revealedContact ? (
@@ -181,6 +234,59 @@ export default function ViewProfile() {
                 </p>
               )}
             </div>
+
+            {/* Send Message Modal */}
+            {showMessageModal && (
+              <div className="message-modal-overlay" onClick={() => setShowMessageModal(false)} style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+              }}>
+                <div className="message-modal" onClick={e => e.stopPropagation()} style={{
+                  backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', width: '90%', maxWidth: '500px'
+                }}>
+                  <h2 style={{ marginBottom: '1.5rem' }}>Send Message to {displayName}</h2>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Subject</label>
+                    <input 
+                      type="text" 
+                      className="admin-input" 
+                      style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                      value={messageSubject}
+                      onChange={(e) => setMessageSubject(e.target.value)}
+                      placeholder="Enter subject..."
+                    />
+                  </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Message</label>
+                    <textarea 
+                      className="admin-input" 
+                      style={{ width: '100%', minHeight: '150px', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}
+                      value={messageContent}
+                      onChange={(e) => setMessageContent(e.target.value)}
+                      placeholder="Type your message here..."
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                    <button 
+                      className="admin-btn admin-btn--outline" 
+                      onClick={() => setShowMessageModal(false)}
+                      disabled={sendingMessage}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className="admin-btn admin-btn--primary" 
+                      onClick={handleSendMessage}
+                      disabled={sendingMessage || !messageSubject.trim() || !messageContent.trim()}
+                    >
+                      {sendingMessage ? "Sending..." : "Send Message"}
+                    </button>
+                  </div>
+                  {sendSuccess && <p style={{ color: 'green', marginTop: '1rem' }}>Message sent!</p>}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Body ── */}
