@@ -33,17 +33,19 @@ export default function SecurityHandler() {
   };
 
   useEffect(() => {
-    // Check if this was a page refresh
+    // Check if this was a page refresh (ONLY on initial mount)
     const navEntries = performance.getEntriesByType('navigation');
     if (navEntries.length > 0 && navEntries[0].type === 'reload') {
       if (isAuthenticated()) {
-        handleLogout();
-        return;
+        logout();
+        navigate('/login', { replace: true });
       }
     }
+  }, []); // Run only ONCE per application lifecycle
 
+  useEffect(() => {
     // Set up activity listeners
-    const events = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
+    const events = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
     
     const activityHandler = () => resetTimer();
 
@@ -60,7 +62,7 @@ export default function SecurityHandler() {
         window.removeEventListener(event, activityHandler);
       });
     };
-  }, [location.pathname]); // Re-run/Re-check on navigation if needed, though listeners are global
+  }, []); // Listeners are global, setup only once
 
   return null; // This component doesn't render any UI
 }
