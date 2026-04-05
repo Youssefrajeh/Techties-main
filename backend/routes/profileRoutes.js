@@ -109,6 +109,7 @@ router.get("/:userId", auth, async (req, res) => {
       skills: profile.skills,
       age: profile.age,
       user: profile.user,
+      allowContactShare: profile.allowContactShare,
     };
 
     // Only include contact details if the user opted in
