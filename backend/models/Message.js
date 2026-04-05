@@ -25,6 +25,14 @@ const MessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    deletedBySender: {
+      type: Boolean,
+      default: false,
+    },
+    deletedByRecipient: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
