@@ -5,22 +5,22 @@ const ContactLog = require("../models/ContactLog");
 const UpgradeRequest = require("../models/UpgradeRequest");
 const bcrypt = require("bcryptjs");
 
-// helper: PM-only access check
-async function requirePM(req, res) {
+// helper: Admin-only access check
+async function requireAdmin(req, res) {
   const currentUser = await User.findById(req.user);
-  if (!currentUser || currentUser.role !== "pm") {
-    res.status(403).json({ msg: "Access denied. Product Manager privileges required." });
+  if (!currentUser || currentUser.role !== "admin") {
+    res.status(403).json({ msg: "Access denied. Admin privileges required." });
     return null;
   }
   return currentUser;
 }
 
-// @desc    Get dashboard statistics for Product Managers
+// @desc    Get dashboard statistics for Admins
 // @route   GET /api/admin/dashboard
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.getDashboardStats = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     // Requirement: How many free members are registered
@@ -49,12 +49,12 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// @desc    List all users (PM only)
+// @desc    List all users (Admin only)
 // @route   GET /api/admin/users
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.getUsers = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const users = await User.find().select("-password").sort({ date: -1 });
@@ -65,19 +65,19 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// @desc    Update user role or isPaid (PM only)
+// @desc    Update user role or isPaid (Admin only)
 // @route   PATCH /api/admin/users/:id
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.updateUser = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const { role, isPaid } = req.body;
     const updates = {};
 
     if (role !== undefined) {
-      const allowedRoles = ["member", "pm"];
+      const allowedRoles = ["member", "admin"];
       if (!allowedRoles.includes(role)) {
         return res.status(400).json({ msg: "Invalid role value" });
       }
@@ -105,12 +105,12 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// @desc    Delete a user (PM only)
+// @desc    Delete a user (Admin only)
 // @route   DELETE /api/admin/users/:id
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.deleteUser = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const userId = req.params.id;
@@ -143,12 +143,12 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// @desc    List all profiles (PM only)
+// @desc    List all profiles (Admin only)
 // @route   GET /api/admin/profiles
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.getProfiles = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const profiles = await Profile.find()
@@ -162,12 +162,12 @@ exports.getProfiles = async (req, res) => {
   }
 };
 
-// @desc    Update profile fields (PM only)
+// @desc    Update profile fields (Admin only)
 // @route   PATCH /api/admin/profiles/:id
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.updateProfile = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const { allowContactShare } = req.body;
@@ -194,12 +194,12 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    List all match feedback (PM only)
+// @desc    List all match feedback (Admin only)
 // @route   GET /api/admin/feedback
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.getFeedback = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const feedback = await MatchFeedback.find()
@@ -215,12 +215,12 @@ exports.getFeedback = async (req, res) => {
   }
 };
 
-// @desc    Reset user password (PM only)
+// @desc    Reset user password (Admin only)
 // @route   POST /api/admin/users/:id/reset-password
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.resetUserPassword = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const { newPassword } = req.body;
@@ -244,12 +244,12 @@ exports.resetUserPassword = async (req, res) => {
   }
 };
 
-// @desc    List all upgrade requests (PM only)
+// @desc    List all upgrade requests (Admin only)
 // @route   GET /api/admin/upgrade-requests
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.getUpgradeRequests = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const requests = await UpgradeRequest.find()
@@ -263,12 +263,12 @@ exports.getUpgradeRequests = async (req, res) => {
   }
 };
 
-// @desc    Approve or reject upgrade request (PM only)
+// @desc    Approve or reject upgrade request (Admin only)
 // @route   PATCH /api/admin/upgrade-requests/:id
-// @access  Private (PM only)
+// @access  Private (Admin only)
 exports.handleUpgradeRequest = async (req, res) => {
   try {
-    const currentUser = await requirePM(req, res);
+    const currentUser = await requireAdmin(req, res);
     if (!currentUser) return;
 
     const { status } = req.body;

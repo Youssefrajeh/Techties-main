@@ -61,7 +61,7 @@ export default function Admin() {
     api('/auth/me')
       .then((res) => res.json())
       .then((data) => {
-        if (data.role !== 'pm') {
+        if (data.role !== 'admin') {
           navigate('/dashboard', { state: { adminDenied: true }, replace: true });
           return;
         }
@@ -540,7 +540,7 @@ export default function Admin() {
               >
                 <option value="all">All roles</option>
                 <option value="member">member</option>
-                <option value="pm">pm</option>
+                <option value="admin">admin</option>
               </select>
 
               <select
@@ -583,7 +583,7 @@ export default function Admin() {
                               className="admin-select"
                             >
                               <option value="member">member</option>
-                              <option value="pm">pm</option>
+                              <option value="admin">admin</option>
                             </select>
                           ) : (
                             u.role || 'member'

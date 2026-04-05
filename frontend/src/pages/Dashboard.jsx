@@ -93,7 +93,7 @@ export default function Dashboard() {
       navigate("/login");
       return;
     }
-    if (session?.role === "pm") {
+    if (session?.role === "admin") {
       navigate("/admin", { replace: true });
       return;
     }
@@ -457,7 +457,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {session?.role === "pm" && (
+              {session?.role === "admin" && (
                 <Button
                   variant="secondary"
                   fullWidth
