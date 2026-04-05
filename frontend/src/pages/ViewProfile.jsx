@@ -39,7 +39,7 @@ export default function ViewProfile() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          recipientId: profile.user._id,
+          recipientId: userId,
           subject: messageSubject,
           content: messageContent,
         }),

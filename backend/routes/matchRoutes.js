@@ -13,9 +13,4 @@ router.get("/recommendations", auth, getMatchRecommendations);
 // @access  Private
 router.get("/received-interest", auth, getReceivedInterest);
 
-// @route   GET api/matches/contact/:matchedUserId
-// @desc    Get contact details for a matched user
-// @access  Private
-router.get("/contact/:matchedUserId", auth, getMatchContact);
-
 module.exports = router;
