@@ -349,9 +349,7 @@ export default function Dashboard() {
               </div>
             </section>
 
-            <section className="dashboard__section">
-              <h2 className="dashboard__section-title">Matches for You</h2>
-            </section>
+
             </div>
 
             <div className="dashboard__details">
@@ -425,9 +423,11 @@ export default function Dashboard() {
             <h3 className="dashboard__card-title">Quick Actions</h3>
 
             <div className="dashboard__quick-actions">
-              <Button variant="primary" fullWidth to="/matches">
-                🤝 View Match Recommendations
-              </Button>
+              {isPaidUser && (
+                <Button variant="primary" fullWidth to="/matches">
+                  🤝 View Match Recommendations
+                </Button>
+              )}
 
               {!isPaidUser && upgradeStatus !== 'pending' && (
                 <Button

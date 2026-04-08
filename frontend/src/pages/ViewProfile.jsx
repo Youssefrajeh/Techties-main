@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Button from "../components/Button";
+import { getSession } from "../utils/auth";
 import "./ViewProfile.css";
 
 export default function ViewProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
+
+  const session = getSession();
+  const isPaidUser = session?.isPaid || false;
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -123,14 +127,14 @@ export default function ViewProfile() {
       <nav className="dashboard__nav">
         <a href="/" className="dashboard__nav-brand">TechTies</a>
         <div className="dashboard__nav-actions">
-          <a href="/matches" className="button button--ghost button--sm">Matches</a>
+          {isPaidUser && <a href="/matches" className="button button--ghost button--sm">Matches</a>}
           <a href="/dashboard" className="button button--secondary button--sm">Dashboard</a>
         </div>
       </nav>
 
       <div className="view-profile__container">
-        <button className="view-profile__back" onClick={() => navigate("/matches")}>
-          ← Back to Matches
+        <button className="view-profile__back" onClick={() => navigate(isPaidUser ? "/matches" : "/dashboard")}>
+          ← Back to {isPaidUser ? "Matches" : "Dashboard"}
         </button>
 
         <div className="view-profile__card">
